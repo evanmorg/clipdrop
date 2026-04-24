@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ClipDrop — UGC Ads for Dropshippers</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0A0A0A;
+    --bg2: #111111;
+    --bg3: #181818;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #F0EDE8;
+    --muted: rgba(240,237,232,0.5);
+    --accent: #E8FF47;
+    --accent2: #FF6B35;
+    --accent-dim: rgba(232,255,71,0.12);
+    --font-head: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.25rem 2.5rem;
+    background: rgba(10,10,10,0.85);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo {
+    font-family: var(--font-head);
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    text-decoration: none;
+  }
+  .logo span { color: var(--accent); }
+
+  nav ul {
+    display: flex; gap: 2rem; list-style: none;
+  }
+  nav ul a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 400;
+    transition: color 0.2s;
+  }
+  nav ul a:hover { color: var(--text); }
+
+  .nav-cta {
+    background: var(--accent);
+    color: #0A0A0A;
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 0.875rem;
+    padding: 0.6rem 1.4rem;
+    border-radius: 100px;
+    text-decoration: none;
+    transition: opacity 0.2s, transform 0.15s;
+  }
+  .nav-cta:hover { opacity: 0.9; transform: translateY(-1px); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    padding: 8rem 2rem 5rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute; top: -200px; left: 50%; transform: translateX(-50%);
+    width: 800px; height: 800px;
+    background: radial-gradient(ellipse, rgba(232,255,71,0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: var(--accent-dim);
+    border: 1px solid rgba(232,255,71,0.25);
+    border-radius: 100px;
+    padding: 0.4rem 1rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--accent);
+    margin-bottom: 2rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .hero-badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  h1 {
+    font-family: var(--font-head);
+    font-size: clamp(3rem, 7vw, 6rem);
+    font-weight: 800;
+    line-height: 1.0;
+    letter-spacing: -0.03em;
+    max-width: 900px;
+    margin: 0 auto 1.5rem;
+  }
+  h1 em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  .hero-sub {
+    font-size: clamp(1rem, 2vw, 1.2rem);
+    color: var(--muted);
+    max-width: 560px;
+    margin: 0 auto 2.5rem;
+    font-weight: 300;
+    line-height: 1.7;
+  }
+
+  .hero-actions {
+    display: flex; gap: 1rem; align-items: center; justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #0A0A0A;
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 1rem;
+    padding: 0.9rem 2rem;
+    border-radius: 100px;
+    text-decoration: none;
+    border: none; cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.2s;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(232,255,71,0.25); }
+
+  .btn-ghost {
+    color: var(--muted);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    text-decoration: none;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    transition: color 0.2s;
+    background: none; border: none; cursor: pointer;
+    padding: 0.9rem 1rem;
+  }
+  .btn-ghost:hover { color: var(--text); }
+
+  .hero-social-proof {
+    margin-top: 3.5rem;
+    display: flex; align-items: center; gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .avatars {
+    display: flex;
+  }
+  .avatars span {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 2px solid var(--bg);
+    background: var(--bg3);
+    margin-left: -10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 500;
+    overflow: hidden;
+  }
+  .avatars span:first-child { margin-left: 0; }
+  .social-text { font-size: 0.85rem; color: var(--muted); }
+  .social-text strong { color: var(--text); }
+
+  /* TICKER */
+  .ticker {
+    overflow: hidden;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 0.9rem 0;
+    background: var(--bg2);
+  }
+  .ticker-inner {
+    display: flex; gap: 3rem;
+    animation: ticker 20s linear infinite;
+    white-space: nowrap;
+  }
+  .ticker-item {
+    display: flex; align-items: center; gap: 0.75rem;
+    font-size: 0.85rem; color: var(--muted);
+    font-weight: 400;
+    flex-shrink: 0;
+  }
+  .ticker-item .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+  @keyframes ticker {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  /* HOW IT WORKS */
+  section { padding: 6rem 2rem; }
+
+  .section-label {
+    font-size: 0.75rem; font-weight: 500;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 1rem;
+  }
+
+  h2 {
+    font-family: var(--font-head);
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 1rem;
+  }
+
+  .section-sub {
+    font-size: 1.05rem; color: var(--muted);
+    max-width: 500px;
+    font-weight: 300; line-height: 1.7;
+    margin-bottom: 3.5rem;
+  }
+
+  .container { max-width: 1100px; margin: 0 auto; }
+
+  /* STEPS */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .step {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    position: relative;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .step:hover { border-color: var(--border2); transform: translateY(-3px); }
+
+  .step-num {
+    font-family: var(--font-head);
+    font-size: 3rem; font-weight: 800;
+    color: var(--accent-dim);
+    line-height: 1;
+    margin-bottom: 1rem;
+    -webkit-text-stroke: 1px rgba(232,255,71,0.3);
+    color: transparent;
+  }
+
+  .step h3 {
+    font-family: var(--font-head);
+    font-size: 1.1rem; font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .step p { font-size: 0.9rem; color: var(--muted); line-height: 1.6; }
+
+  .step-icon {
+    width: 40px; height: 40px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(232,255,71,0.2);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 1.25rem;
+    font-size: 1.1rem;
+  }
+
+  /* FOR WHO */
+  .split {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+  @media (max-width: 700px) { .split { grid-template-columns: 1fr; } }
+
+  .for-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .for-card::after {
+    content: '';
+    position: absolute; bottom: -60px; right: -60px;
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(232,255,71,0.06), transparent 70%);
+  }
+  .for-card.orange::after {
+    background: radial-gradient(circle, rgba(255,107,53,0.08), transparent 70%);
+  }
+
+  .for-tag {
+    display: inline-block;
+    font-size: 0.75rem; font-weight: 500;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 0.3rem 0.8rem;
+    border-radius: 100px;
+    margin-bottom: 1.5rem;
+  }
+  .for-tag.seller { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(232,255,71,0.2); }
+  .for-tag.creator { background: rgba(255,107,53,0.12); color: var(--accent2); border: 1px solid rgba(255,107,53,0.2); }
+
+  .for-card h3 {
+    font-family: var(--font-head);
+    font-size: 1.5rem; font-weight: 800;
+    margin-bottom: 1rem; line-height: 1.15;
+  }
+
+  .for-list { list-style: none; display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1.5rem; }
+  .for-list li {
+    display: flex; align-items: flex-start; gap: 0.75rem;
+    font-size: 0.9rem; color: var(--muted);
+  }
+  .for-list li::before {
+    content: '✓';
+    color: var(--accent);
+    font-weight: 700; font-size: 0.85rem;
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .for-card.orange .for-list li::before { color: var(--accent2); }
+
+  /* PRICING */
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+    max-width: 860px; margin: 0 auto;
+  }
+
+  .price-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2rem;
+    display: flex; flex-direction: column;
+  }
+  .price-card.featured {
+    border-color: var(--accent);
+    position: relative;
+  }
+  .featured-badge {
+    position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+    background: var(--accent); color: #0A0A0A;
+    font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.9rem;
+    border-radius: 100px;
+  }
+
+  .price-name {
+    font-family: var(--font-head);
+    font-size: 1rem; font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .price-amount {
+    font-family: var(--font-head);
+    font-size: 2.8rem; font-weight: 800;
+    line-height: 1; margin-bottom: 0.3rem;
+    letter-spacing: -0.03em;
+  }
+  .price-amount span { font-size: 1rem; font-weight: 400; color: var(--muted); }
+
+  .price-desc { font-size: 0.85rem; color: var(--muted); margin-bottom: 1.5rem; }
+
+  .price-features { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 2rem; flex: 1; }
+  .price-features li { font-size: 0.88rem; color: var(--muted); display: flex; gap: 0.6rem; align-items: flex-start; }
+  .price-features li::before { content: '—'; color: var(--border2); flex-shrink: 0; }
+  .price-card.featured .price-features li::before { color: var(--accent); content: '✓'; }
+
+  .btn-outline {
+    display: block; text-align: center;
+    border: 1px solid var(--border2);
+    color: var(--text);
+    border-radius: 100px;
+    padding: 0.75rem;
+    font-size: 0.9rem; font-weight: 500;
+    text-decoration: none;
+    transition: border-color 0.2s, background 0.2s;
+    font-family: var(--font-body);
+    cursor: pointer; background: none;
+  }
+  .btn-outline:hover { border-color: var(--text); background: rgba(255,255,255,0.04); }
+  .price-card.featured .btn-outline {
+    background: var(--accent); color: #0A0A0A; border-color: var(--accent);
+  }
+  .price-card.featured .btn-outline:hover { opacity: 0.9; }
+
+  /* SIGNUP FORM */
+  .signup-section {
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+    padding: 6rem 2rem;
+  }
+
+  .signup-box {
+    max-width: 520px; margin: 0 auto;
+  }
+
+  .signup-box h2 { margin-bottom: 0.75rem; }
+  .signup-box p { color: var(--muted); margin-bottom: 2rem; font-size: 1rem; }
+
+  .form-row {
+    display: flex; gap: 0.75rem;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 100px;
+    padding: 0.4rem 0.4rem 0.4rem 1.5rem;
+    transition: border-color 0.2s;
+  }
+  .form-row:focus-within { border-color: var(--accent); }
+
+  .form-row input {
+    flex: 1;
+    background: none; border: none; outline: none;
+    color: var(--text);
+    font-family: var(--font-body); font-size: 0.95rem;
+  }
+  .form-row input::placeholder { color: var(--muted); }
+
+  .form-tabs {
+    display: flex; gap: 0.5rem; margin-bottom: 1.5rem; justify-content: center;
+  }
+  .tab {
+    padding: 0.5rem 1.25rem;
+    border-radius: 100px;
+    font-size: 0.85rem; font-weight: 500;
+    cursor: pointer; border: 1px solid var(--border);
+    background: none; color: var(--muted);
+    font-family: var(--font-body);
+    transition: all 0.2s;
+  }
+  .tab.active { background: var(--accent-dim); border-color: rgba(232,255,71,0.3); color: var(--accent); }
+
+  /* FOOTER */
+  footer {
+    padding: 3rem 2rem;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 1rem;
+  }
+  footer p { font-size: 0.85rem; color: var(--muted); }
+  .footer-links { display: flex; gap: 1.5rem; }
+  .footer-links a { font-size: 0.85rem; color: var(--muted); text-decoration: none; }
+  .footer-links a:hover { color: var(--text); }
+
+  /* ANIMATIONS */
+  .fade-up {
+    opacity: 0; transform: translateY(24px);
+    animation: fadeUp 0.6s ease forwards;
+  }
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .delay-1 { animation-delay: 0.1s; }
+  .delay-2 { animation-delay: 0.2s; }
+  .delay-3 { animation-delay: 0.3s; }
+  .delay-4 { animation-delay: 0.4s; }
+  .delay-5 { animation-delay: 0.55s; }
+
+  /* MOBILE */
+  @media (max-width: 600px) {
+    nav ul { display: none; }
+    nav { padding: 1rem 1.25rem; }
+    section { padding: 4rem 1.25rem; }
+    .form-row { flex-direction: column; border-radius: 14px; padding: 0.75rem; }
+    .form-row input { padding: 0.5rem 0.5rem; }
+    .btn-primary { width: 100%; justify-content: center; border-radius: 10px; }
+  }
+
+  /* SUCCESS STATE */
+  .success-msg {
+    display: none;
+    color: var(--accent);
+    font-size: 0.95rem;
+    margin-top: 1rem;
+    animation: fadeUp 0.4s ease forwards;
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="logo">Clip<span>Drop</span></a>
+  <ul>
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#for-who">For who</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+  </ul>
+  <a href="#signup" class="nav-cta">Get early access</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">Now in early access</div>
+  <h1 class="fade-up">Real creators.<br><em>Real ads.</em> Shipped to them.</h1>
+  <p class="hero-sub fade-up delay-1">
+    Submit your product, we ship it to a creator, they film your ad in 7 days. The only UGC platform built specifically for dropshippers.
+  </p>
+  <div class="hero-actions fade-up delay-2">
+    <a href="#signup" class="btn-primary">Get your first ad →</a>
+    <a href="#how" class="btn-ghost">See how it works ↓</a>
+  </div>
+  <div class="hero-social-proof fade-up delay-3">
+    <div class="avatars">
+      <span style="background:#2a2a2a">JK</span>
+      <span style="background:#1e2a1e">ML</span>
+      <span style="background:#2a1e1e">RT</span>
+      <span style="background:#1e1e2a">SP</span>
+      <span style="background:#2a2a1e">+</span>
+    </div>
+    <p class="social-text"><strong>200+ dropshippers</strong> on the waitlist</p>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-inner" id="ticker">
+    <span class="ticker-item"><span class="dot"></span>7-day turnaround</span>
+    <span class="ticker-item"><span class="dot"></span>US & EU creators</span>
+    <span class="ticker-item"><span class="dot"></span>Product shipped direct</span>
+    <span class="ticker-item"><span class="dot"></span>One free revision</span>
+    <span class="ticker-item"><span class="dot"></span>TikTok & Instagram formats</span>
+    <span class="ticker-item"><span class="dot"></span>Pay only on approval</span>
+    <span class="ticker-item"><span class="dot"></span>7-day turnaround</span>
+    <span class="ticker-item"><span class="dot"></span>US & EU creators</span>
+    <span class="ticker-item"><span class="dot"></span>Product shipped direct</span>
+    <span class="ticker-item"><span class="dot"></span>One free revision</span>
+    <span class="ticker-item"><span class="dot"></span>TikTok & Instagram formats</span>
+    <span class="ticker-item"><span class="dot"></span>Pay only on approval</span>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="container">
+    <p class="section-label">How it works</p>
+    <h2>From product link<br>to finished ad.</h2>
+    <p class="section-sub">No chasing creators. No confusing briefs. No waiting weeks. Just a clean workflow that gets you scroll-stopping content fast.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-icon">🔗</div>
+        <h3>Submit your product</h3>
+        <p>Paste your AliExpress or supplier link. Tell us who your customer is and what kind of ad you need.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-icon">📦</div>
+        <h3>We ship to the creator</h3>
+        <p>We order your product directly to a matched creator in the US or EU. No back and forth, no delays.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-icon">🎬</div>
+        <h3>Creator films in 7 days</h3>
+        <p>Your creator receives the brief, films a native-style TikTok or Instagram ad, and submits it for your review.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <div class="step-icon">✅</div>
+        <h3>Approve & run ads</h3>
+        <p>Review the video. Request one free revision if needed. Approve and download — ready to run immediately.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOR WHO -->
+<section id="for-who" style="background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+  <div class="container">
+    <p class="section-label">Built for both sides</p>
+    <h2>Whether you're selling<br>or creating.</h2>
+    <p class="section-sub">ClipDrop connects dropshippers who need ads with creators who already know how to make them.</p>
+
+    <div class="split">
+      <div class="for-card">
+        <span class="for-tag seller">For sellers</span>
+        <h3>Stop guessing.<br>Start testing.</h3>
+        <p style="color: var(--muted); font-size: 0.9rem; line-height: 1.65;">You've got a winning product. Now you need creative that converts. Stop overpaying for generic content — get real UGC from real people who know TikTok.</p>
+        <ul class="for-list">
+          <li>Pay per video, no subscriptions</li>
+          <li>Ads delivered in 7 days or less</li>
+          <li>Product shipped on your behalf</li>
+          <li>One free revision guaranteed</li>
+          <li>Only pay on approval</li>
+        </ul>
+      </div>
+      <div class="for-card orange">
+        <span class="for-tag creator">For creators</span>
+        <h3>Get paid to make<br>content you love.</h3>
+        <p style="color: var(--muted); font-size: 0.9rem; line-height: 1.65;">You already make TikToks. Now get paid for it. List yourself on ClipDrop, receive free products, and earn on every video you deliver.</p>
+        <ul class="for-list">
+          <li>Products shipped to your door</li>
+          <li>Set your own rates and niches</li>
+          <li>Get paid within 24h of approval</li>
+          <li>Build a portfolio of brand work</li>
+          <li>No cold pitching required</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="container" style="text-align: center;">
+    <p class="section-label">Simple pricing</p>
+    <h2>No subscriptions.<br>Pay per video.</h2>
+    <p class="section-sub" style="margin: 0 auto 3rem;">Try it for $39 with no commitment. When you find what converts, lock in a plan and pay less per video the more you scale.</p>
+
+    <div class="pricing-grid">
+      <div class="price-card">
+        <p class="price-name">Try</p>
+        <p class="price-amount">$39<span> flat</span></p>
+        <p class="price-desc">One video. See if you like it.</p>
+        <ul class="price-features">
+          <li>1 creator video (30–60s)</li>
+          <li>TikTok or Reels format</li>
+          <li>Product shipped by us</li>
+          <li>One free revision</li>
+          <li>7-day delivery</li>
+        </ul>
+        <a href="#signup" class="btn-outline">Get started</a>
+      </div>
+
+      <div class="price-card featured">
+        <span class="featured-badge">Most popular</span>
+        <p class="price-name">Growth</p>
+        <p class="price-amount">$149<span>/mo</span></p>
+        <p class="price-desc">5 videos a month — test what converts</p>
+        <ul class="price-features">
+          <li>5 creator videos/month</li>
+          <li>Multiple creators & angles</li>
+          <li>Hook variations included</li>
+          <li>Priority creator matching</li>
+          <li>5-day delivery</li>
+        </ul>
+        <a href="#signup" class="btn-outline">Get started</a>
+      </div>
+
+      <div class="price-card">
+        <p class="price-name">Scale</p>
+        <p class="price-amount">$399<span>/mo</span></p>
+        <p class="price-desc">For stores running ads at volume</p>
+        <ul class="price-features">
+          <li>15 creator videos/month</li>
+          <li>Dedicated creator pool</li>
+          <li>Same-niche creators</li>
+          <li>Unlimited revisions</li>
+          <li>Account manager</li>
+        </ul>
+        <a href="#signup" class="btn-outline">Get started</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SIGNUP -->
+<div class="signup-section" id="signup">
+  <div class="signup-box">
+    <p class="section-label">Early access</p>
+    <h2>Join the waitlist.</h2>
+    <p>We're letting in a small group first. Sign up as a seller or creator to get early access and launch pricing.</p>
+
+    <div class="form-tabs">
+      <button class="tab active" onclick="setTab(this, 'seller')">I'm a seller</button>
+      <button class="tab" onclick="setTab(this, 'creator')">I'm a creator</button>
+    </div>
+
+    <div class="form-row">
+      <input type="email" id="email-input" placeholder="Enter your email address" />
+      <button class="btn-primary" onclick="handleSignup()" style="flex-shrink:0; padding: 0.7rem 1.5rem; font-size: 0.9rem;">
+        Join waitlist →
+      </button>
+    </div>
+    <p class="success-msg" id="success-msg">🎉 You're on the list! We'll be in touch soon.</p>
+    <p style="font-size: 0.78rem; color: var(--muted); margin-top: 0.9rem;">No spam, ever. Unsubscribe anytime.</p>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container" style="display:flex; justify-content: space-between; align-items: center; flex-wrap:wrap; gap:1rem; width:100%;">
+    <a href="#" class="logo" style="font-size: 1.1rem;">Clip<span>Drop</span></a>
+    <p style="font-size: 0.82rem; color: var(--muted);">© 2026 ClipDrop. All rights reserved.</p>
+    <div class="footer-links">
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+      <a href="#">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  let activeTab = 'seller';
+
+  function setTab(el, type) {
+    activeTab = type;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  function handleSignup() {
+    const email = document.getElementById('email-input').value.trim();
+    if (!email || !email.includes('@')) {
+      document.getElementById('email-input').style.outline = '1px solid #ff6b6b';
+      setTimeout(() => document.getElementById('email-input').style.outline = '', 1500);
+      return;
+    }
+    const msg = document.getElementById('success-msg');
+    msg.style.display = 'block';
+    msg.textContent = activeTab === 'seller'
+      ? '🎉 You\'re on the seller waitlist! We\'ll be in touch soon.'
+      : '🎉 You\'re on the creator waitlist! We\'ll reach out with next steps.';
+    document.getElementById('email-input').value = '';
+  }
+
+  document.getElementById('email-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') handleSignup();
+  });
+</script>
+</body>
+</html>

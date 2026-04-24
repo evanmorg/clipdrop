@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ClipDrop — Creator Signup</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0A0A0A;
+    --bg2: #111111;
+    --bg3: #181818;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #F0EDE8;
+    --muted: rgba(240,237,232,0.5);
+    --accent: #E8FF47;
+    --accent2: #FF6B35;
+    --accent-dim: rgba(232,255,71,0.1);
+    --error: #FF5C5C;
+    --font-head: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+  }
+
+  html, body {
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  /* NAV */
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.25rem 2.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo {
+    font-family: var(--font-head);
+    font-size: 1.3rem; font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--text); text-decoration: none;
+  }
+  .logo span { color: var(--accent); }
+  .nav-login { font-size: 0.85rem; color: var(--muted); text-decoration: none; }
+  .nav-login:hover { color: var(--text); }
+
+  /* LAYOUT */
+  .page {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: calc(100vh - 65px);
+  }
+
+  /* LEFT PANEL */
+  .left-panel {
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    padding: 3.5rem 3rem;
+    display: flex; flex-direction: column; justify-content: space-between;
+    position: sticky; top: 0; height: calc(100vh - 65px);
+  }
+
+  .left-top {}
+
+  .creator-tag {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: rgba(255,107,53,0.12);
+    border: 1px solid rgba(255,107,53,0.2);
+    border-radius: 100px;
+    padding: 0.35rem 0.9rem;
+    font-size: 0.75rem; font-weight: 500;
+    color: var(--accent2);
+    letter-spacing: 0.06em; text-transform: uppercase;
+    margin-bottom: 2rem;
+  }
+
+  .left-panel h1 {
+    font-family: var(--font-head);
+    font-size: 2.4rem; font-weight: 800;
+    line-height: 1.05; letter-spacing: -0.02em;
+    margin-bottom: 1rem;
+  }
+  .left-panel h1 em { font-style: normal; color: var(--accent2); }
+
+  .left-panel p {
+    color: var(--muted); font-size: 0.95rem;
+    line-height: 1.7; max-width: 340px;
+    margin-bottom: 2.5rem;
+  }
+
+  .perks { display: flex; flex-direction: column; gap: 1rem; }
+  .perk {
+    display: flex; align-items: flex-start; gap: 0.9rem;
+  }
+  .perk-icon {
+    width: 36px; height: 36px; flex-shrink: 0;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.95rem;
+  }
+  .perk-text strong {
+    display: block; font-size: 0.88rem; font-weight: 500; color: var(--text);
+  }
+  .perk-text span { font-size: 0.82rem; color: var(--muted); }
+
+  /* STEP PROGRESS (left) */
+  .step-progress {
+    display: flex; flex-direction: column; gap: 0.6rem;
+  }
+  .step-dot {
+    display: flex; align-items: center; gap: 0.75rem;
+    font-size: 0.82rem; color: var(--muted);
+    transition: color 0.3s;
+  }
+  .step-dot.active { color: var(--text); }
+  .step-dot.done { color: var(--accent2); }
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--border2); flex-shrink: 0;
+    transition: background 0.3s;
+  }
+  .step-dot.active .dot { background: var(--accent); }
+  .step-dot.done .dot { background: var(--accent2); }
+
+  /* RIGHT PANEL / FORM */
+  .right-panel {
+    padding: 3.5rem 3rem;
+    display: flex; flex-direction: column;
+    max-width: 560px;
+  }
+
+  .step-header {
+    margin-bottom: 2.5rem;
+  }
+  .step-counter {
+    font-size: 0.75rem; font-weight: 500;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 0.5rem;
+  }
+  .step-header h2 {
+    font-family: var(--font-head);
+    font-size: 1.7rem; font-weight: 800;
+    letter-spacing: -0.02em; line-height: 1.15;
+    margin-bottom: 0.4rem;
+  }
+  .step-header p { font-size: 0.9rem; color: var(--muted); }
+
+  /* FORM ELEMENTS */
+  .field { margin-bottom: 1.25rem; }
+  label {
+    display: block;
+    font-size: 0.82rem; font-weight: 500;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+    letter-spacing: 0.01em;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="url"],
+  select, textarea {
+    width: 100%;
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    padding: 0.75rem 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+    appearance: none;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--accent);
+  }
+  input::placeholder, textarea::placeholder { color: var(--muted); }
+  textarea { resize: vertical; min-height: 90px; }
+
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(240,237,232,0.4)' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    padding-right: 2.5rem;
+    cursor: pointer;
+  }
+
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+  .input-prefix {
+    display: flex; align-items: center;
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .input-prefix:focus-within { border-color: var(--accent); }
+  .input-prefix span {
+    padding: 0.75rem 0.75rem 0.75rem 1rem;
+    font-size: 0.9rem; color: var(--muted);
+    background: var(--bg3);
+    border-right: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .input-prefix input {
+    border: none; border-radius: 0;
+    background: transparent;
+    flex: 1;
+  }
+  .input-prefix input:focus { border-color: transparent; }
+
+  /* NICHE CHIPS */
+  .niches {
+    display: flex; flex-wrap: wrap; gap: 0.5rem;
+    margin-top: 0.25rem;
+  }
+  .niche-chip {
+    padding: 0.4rem 0.9rem;
+    border-radius: 100px;
+    border: 1px solid var(--border2);
+    background: none;
+    color: var(--muted);
+    font-family: var(--font-body);
+    font-size: 0.82rem; font-weight: 400;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .niche-chip:hover { border-color: var(--border2); color: var(--text); background: var(--bg3); }
+  .niche-chip.selected {
+    background: rgba(255,107,53,0.12);
+    border-color: rgba(255,107,53,0.35);
+    color: var(--accent2);
+  }
+
+  /* PLATFORM TOGGLES */
+  .platforms { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.25rem; }
+  .platform-btn {
+    padding: 0.45rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border2);
+    background: none;
+    color: var(--muted);
+    font-family: var(--font-body);
+    font-size: 0.85rem; cursor: pointer;
+    transition: all 0.15s;
+    display: flex; align-items: center; gap: 0.4rem;
+  }
+  .platform-btn:hover { color: var(--text); background: var(--bg3); }
+  .platform-btn.selected {
+    background: var(--accent-dim);
+    border-color: rgba(232,255,71,0.3);
+    color: var(--accent);
+  }
+
+  /* RATE SLIDER */
+  .rate-display {
+    font-family: var(--font-head);
+    font-size: 2.5rem; font-weight: 800;
+    color: var(--accent); letter-spacing: -0.03em;
+    margin: 0.5rem 0 1rem;
+  }
+  .rate-display span { font-size: 1rem; color: var(--muted); font-family: var(--font-body); font-weight: 400; }
+
+  input[type="range"] {
+    width: 100%;
+    -webkit-appearance: none;
+    background: none;
+    padding: 0;
+    border: none;
+    height: 4px;
+    cursor: pointer;
+  }
+  input[type="range"]:focus { border-color: transparent; }
+  input[type="range"]::-webkit-slider-runnable-track {
+    height: 4px;
+    background: var(--border2);
+    border-radius: 2px;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--accent);
+    margin-top: -8px;
+    cursor: pointer;
+    border: 3px solid var(--bg);
+  }
+  .rate-labels {
+    display: flex; justify-content: space-between;
+    font-size: 0.75rem; color: var(--muted);
+    margin-top: 0.5rem;
+  }
+
+  /* VIDEO LINKS */
+  .video-link-row {
+    display: flex; gap: 0.5rem; align-items: center;
+    margin-bottom: 0.6rem;
+  }
+  .video-link-row input { flex: 1; margin: 0; }
+  .remove-link {
+    width: 34px; height: 34px; flex-shrink: 0;
+    background: none; border: 1px solid var(--border);
+    border-radius: 8px; color: var(--muted);
+    font-size: 1.1rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .remove-link:hover { border-color: var(--error); color: var(--error); }
+  .add-link {
+    background: none; border: 1px dashed var(--border2);
+    border-radius: 10px;
+    color: var(--muted); font-family: var(--font-body);
+    font-size: 0.85rem; padding: 0.6rem 1rem;
+    cursor: pointer; width: 100%;
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+  }
+  .add-link:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+  /* FORM ACTIONS */
+  .form-actions {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .btn-back {
+    background: none; border: none;
+    color: var(--muted); font-family: var(--font-body);
+    font-size: 0.9rem; cursor: pointer;
+    display: flex; align-items: center; gap: 0.4rem;
+    padding: 0; transition: color 0.2s;
+  }
+  .btn-back:hover { color: var(--text); }
+
+  .btn-next {
+    background: var(--accent); color: #0A0A0A;
+    font-family: var(--font-body); font-weight: 500;
+    font-size: 0.95rem;
+    padding: 0.8rem 2rem;
+    border-radius: 100px; border: none;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 0.5rem;
+    transition: transform 0.15s, box-shadow 0.2s;
+  }
+  .btn-next:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(232,255,71,0.2); }
+  .btn-next:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  /* ERROR */
+  .field-error {
+    font-size: 0.78rem; color: var(--error);
+    margin-top: 0.3rem; display: none;
+  }
+  input.has-error, select.has-error { border-color: var(--error); }
+
+  /* SUCCESS */
+  .success-screen {
+    display: none;
+    text-align: center;
+    padding: 3rem 0;
+    flex-direction: column;
+    align-items: center;
+  }
+  .success-icon {
+    width: 72px; height: 72px;
+    background: rgba(255,107,53,0.12);
+    border: 1px solid rgba(255,107,53,0.25);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem; margin: 0 auto 1.5rem;
+  }
+  .success-screen h2 {
+    font-family: var(--font-head);
+    font-size: 2rem; font-weight: 800;
+    margin-bottom: 0.75rem;
+  }
+  .success-screen p { color: var(--muted); max-width: 360px; margin: 0 auto 2rem; font-size: 0.95rem; }
+
+  /* STEPS */
+  .form-step { display: none; }
+  .form-step.active { display: block; }
+
+  /* PROGRESS BAR */
+  .progress-bar {
+    height: 2px; background: var(--border);
+    border-radius: 2px; margin-bottom: 2.5rem;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  /* MOBILE */
+  @media (max-width: 768px) {
+    .page { grid-template-columns: 1fr; }
+    .left-panel { display: none; }
+    .right-panel { padding: 2rem 1.5rem; max-width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">Clip<span>Drop</span></a>
+  <a href="#" class="nav-login">Already a creator? <strong>Sign in</strong></a>
+</nav>
+
+<div class="page">
+
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+    <div class="left-top">
+      <span class="creator-tag">For creators</span>
+      <h1>Get paid to make<br><em>ads you'd</em><br><em>watch yourself.</em></h1>
+      <p>Brands ship products to your door. You film a TikTok or Reel. Get paid within 24 hours of approval.</p>
+
+      <div class="perks">
+        <div class="perk">
+          <div class="perk-icon">📦</div>
+          <div class="perk-text">
+            <strong>Products shipped to you</strong>
+            <span>No need to buy anything yourself</span>
+          </div>
+        </div>
+        <div class="perk">
+          <div class="perk-icon">💸</div>
+          <div class="perk-text">
+            <strong>Set your own rate</strong>
+            <span>You decide what you charge per video</span>
+          </div>
+        </div>
+        <div class="perk">
+          <div class="perk-icon">⚡</div>
+          <div class="perk-text">
+            <strong>Fast payouts</strong>
+            <span>Paid within 24h of seller approval</span>
+          </div>
+        </div>
+        <div class="perk">
+          <div class="perk-icon">🎯</div>
+          <div class="perk-text">
+            <strong>Matched to your niche</strong>
+            <span>Only get briefs relevant to your content</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-progress" id="step-progress">
+      <div class="step-dot active" data-step="1"><div class="dot"></div> Account details</div>
+      <div class="step-dot" data-step="2"><div class="dot"></div> Social profiles</div>
+      <div class="step-dot" data-step="3"><div class="dot"></div> Your niches</div>
+      <div class="step-dot" data-step="4"><div class="dot"></div> Shipping address</div>
+      <div class="step-dot" data-step="5"><div class="dot"></div> Rate & portfolio</div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill" style="width: 20%"></div>
+    </div>
+
+    <!-- STEP 1: Account -->
+    <div class="form-step active" id="step-1">
+      <div class="step-header">
+        <p class="step-counter">Step 1 of 5</p>
+        <h2>Create your account</h2>
+        <p>Start with the basics — you can edit all of this later.</p>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>First name</label>
+          <input type="text" id="first-name" placeholder="Alex" />
+          <p class="field-error" id="err-first-name">Please enter your first name</p>
+        </div>
+        <div class="field">
+          <label>Last name</label>
+          <input type="text" id="last-name" placeholder="Johnson" />
+          <p class="field-error" id="err-last-name">Please enter your last name</p>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Email address</label>
+        <input type="email" id="email" placeholder="alex@example.com" />
+        <p class="field-error" id="err-email">Please enter a valid email</p>
+      </div>
+
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="password" placeholder="At least 8 characters" />
+        <p class="field-error" id="err-password">Password must be at least 8 characters</p>
+      </div>
+
+      <div class="field">
+        <label>Confirm password</label>
+        <input type="password" id="confirm-password" placeholder="Repeat your password" />
+        <p class="field-error" id="err-confirm-password">Passwords don't match</p>
+      </div>
+
+      <div class="form-actions">
+        <span></span>
+        <button class="btn-next" onclick="nextStep(1)">Continue →</button>
+      </div>
+    </div>
+
+    <!-- STEP 2: Social Profiles -->
+    <div class="form-step" id="step-2">
+      <div class="step-header">
+        <p class="step-counter">Step 2 of 5</p>
+        <h2>Your social profiles</h2>
+        <p>Tell us where you create. Select the platforms you're active on.</p>
+      </div>
+
+      <div class="field">
+        <label>Platforms you post on</label>
+        <div class="platforms" id="platforms">
+          <button class="platform-btn" onclick="togglePlatform(this, 'tiktok')">🎵 TikTok</button>
+          <button class="platform-btn" onclick="togglePlatform(this, 'instagram')">📸 Instagram</button>
+          <button class="platform-btn" onclick="togglePlatform(this, 'youtube')">▶️ YouTube</button>
+          <button class="platform-btn" onclick="togglePlatform(this, 'facebook')">👤 Facebook</button>
+        </div>
+        <p class="field-error" id="err-platforms">Select at least one platform</p>
+      </div>
+
+      <div class="field" id="tiktok-field" style="display:none">
+        <label>TikTok handle</label>
+        <div class="input-prefix">
+          <span>@</span>
+          <input type="text" id="tiktok-handle" placeholder="yourhandle" />
+        </div>
+      </div>
+
+      <div class="field" id="tiktok-followers-field" style="display:none">
+        <label>TikTok followers</label>
+        <select id="tiktok-followers">
+          <option value="">Select range</option>
+          <option>Under 1,000</option>
+          <option>1,000 – 10,000</option>
+          <option>10,000 – 50,000</option>
+          <option>50,000 – 100,000</option>
+          <option>100,000 – 500,000</option>
+          <option>500,000+</option>
+        </select>
+      </div>
+
+      <div class="field" id="instagram-field" style="display:none">
+        <label>Instagram handle</label>
+        <div class="input-prefix">
+          <span>@</span>
+          <input type="text" id="instagram-handle" placeholder="yourhandle" />
+        </div>
+      </div>
+
+      <div class="field" id="instagram-followers-field" style="display:none">
+        <label>Instagram followers</label>
+        <select id="instagram-followers">
+          <option value="">Select range</option>
+          <option>Under 1,000</option>
+          <option>1,000 – 10,000</option>
+          <option>10,000 – 50,000</option>
+          <option>50,000 – 100,000</option>
+          <option>100,000 – 500,000</option>
+          <option>500,000+</option>
+        </select>
+      </div>
+
+      <div class="field" id="youtube-field" style="display:none">
+        <label>YouTube channel URL</label>
+        <input type="url" id="youtube-url" placeholder="https://youtube.com/@yourchannel" />
+      </div>
+
+      <div class="field" id="facebook-field" style="display:none">
+        <label>Facebook page URL</label>
+        <input type="url" id="facebook-url" placeholder="https://facebook.com/yourpage" />
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-back" onclick="prevStep(2)">← Back</button>
+        <button class="btn-next" onclick="nextStep(2)">Continue →</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: Niches -->
+    <div class="form-step" id="step-3">
+      <div class="step-header">
+        <p class="step-counter">Step 3 of 5</p>
+        <h2>Pick your niches</h2>
+        <p>Select all content categories you're comfortable making ads for. You'll only receive briefs that match.</p>
+      </div>
+
+      <div class="field">
+        <label>Content niches (select all that apply)</label>
+        <div class="niches" id="niches">
+          <button class="niche-chip" onclick="toggleNiche(this)">👗 Fashion</button>
+          <button class="niche-chip" onclick="toggleNiche(this)">💄 Beauty</button>
+          <button class="niche-chip" onclick="toggleNiche(this)">💪 Fitness</button>
+          <button class="niche-chip" onclick="toggleNiche(this)">🏠 Home & Living</button>
+          <button class="niche-chip" onclick="toggleNiche(this)">📱 Tech & Gadgets</button>
+          <button class="niche-chip" onclick="toggleNiche(this)">🐾 Pets</button>
+          <button class="niche-chip" onclick="toggleNiche(this)">🍳 Kitchen</button>
+          <button class="niche-chip" onclick="toggleNiche(this)">🧘 Wellness</button>
+          <button class="niche-chip" onclick="toggleNiche(this)">🎮 Gaming</button>
+          <button class="niche-chip" onclick="toggleNiche(this)">👶 Baby & Kids</button>
+          <button class="niche-chip" onclick="toggleNiche(this)">🚗 Automotive</button>
+          <button class="niche-chip" onclick="toggleNiche(this)">🎒 Outdoor</button>
+          <button class="niche-chip" onclick="toggleNiche(this)">📚 Books & Education</button>
+          <button class="niche-chip" onclick="toggleNiche(this)">🌿 Eco & Sustainable</button>
+        </div>
+        <p class="field-error" id="err-niches">Please select at least one niche</p>
+      </div>
+
+      <div class="field" style="margin-top: 1.5rem;">
+        <label>Ad formats you're comfortable with</label>
+        <div class="platforms" id="formats">
+          <button class="platform-btn" onclick="togglePlatform(this, 'unboxing')">📦 Unboxing</button>
+          <button class="platform-btn" onclick="togglePlatform(this, 'review')">⭐ Review</button>
+          <button class="platform-btn" onclick="togglePlatform(this, 'tutorial')">🎬 Tutorial</button>
+          <button class="platform-btn" onclick="togglePlatform(this, 'lifestyle')">✨ Lifestyle</button>
+          <button class="platform-btn" onclick="togglePlatform(this, 'beforeafter')">🔄 Before/After</button>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-back" onclick="prevStep(3)">← Back</button>
+        <button class="btn-next" onclick="nextStep(3)">Continue →</button>
+      </div>
+    </div>
+
+    <!-- STEP 4: Shipping Address -->
+    <div class="form-step" id="step-4">
+      <div class="step-header">
+        <p class="step-counter">Step 4 of 5</p>
+        <h2>Shipping address</h2>
+        <p>Where should brands send products? This stays private — sellers never see your address directly.</p>
+      </div>
+
+      <div class="field">
+        <label>Street address</label>
+        <input type="text" id="address1" placeholder="123 Main Street" />
+        <p class="field-error" id="err-address1">Please enter your street address</p>
+      </div>
+
+      <div class="field">
+        <label>Apartment, suite, etc. <span style="color:var(--muted); font-weight:300">(optional)</span></label>
+        <input type="text" id="address2" placeholder="Apt 4B" />
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>City</label>
+          <input type="text" id="city" placeholder="Los Angeles" />
+          <p class="field-error" id="err-city">Required</p>
+        </div>
+        <div class="field">
+          <label>State / Province</label>
+          <input type="text" id="state" placeholder="CA" />
+          <p class="field-error" id="err-state">Required</p>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>ZIP / Postal code</label>
+          <input type="text" id="zip" placeholder="90001" />
+          <p class="field-error" id="err-zip">Required</p>
+        </div>
+        <div class="field">
+          <label>Country</label>
+          <select id="country">
+            <option value="">Select country</option>
+            <option>United States</option>
+            <option>United Kingdom</option>
+            <option>Canada</option>
+            <option>Australia</option>
+            <option>Germany</option>
+            <option>France</option>
+            <option>Netherlands</option>
+            <option>Spain</option>
+            <option>Italy</option>
+            <option>Other</option>
+          </select>
+          <p class="field-error" id="err-country">Required</p>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-back" onclick="prevStep(4)">← Back</button>
+        <button class="btn-next" onclick="nextStep(4)">Continue →</button>
+      </div>
+    </div>
+
+    <!-- STEP 5: Rate & Portfolio -->
+    <div class="form-step" id="step-5">
+      <div class="step-header">
+        <p class="step-counter">Step 5 of 5</p>
+        <h2>Rate & portfolio</h2>
+        <p>Set your price and share examples of your work. Strong portfolios get more briefs.</p>
+      </div>
+
+      <div class="field">
+        <label>Your rate per video</label>
+        <div class="rate-display" id="rate-display">$75 <span>per video</span></div>
+        <input type="range" min="20" max="500" step="5" value="75" id="rate-slider" oninput="updateRate(this.value)" />
+        <div class="rate-labels"><span>$20</span><span>$500</span></div>
+      </div>
+
+      <div class="field" style="margin-top: 1.75rem;">
+        <label>Typical turnaround time</label>
+        <select id="turnaround">
+          <option>3 days</option>
+          <option selected>5 days</option>
+          <option>7 days</option>
+          <option>10 days</option>
+        </select>
+      </div>
+
+      <div class="field" style="margin-top: 1.25rem;">
+        <label>Portfolio links <span style="color:var(--muted); font-weight:300">(TikTok, Instagram, YouTube — at least 1)</span></label>
+        <div id="video-links">
+          <div class="video-link-row">
+            <input type="url" placeholder="https://tiktok.com/@you/video/123..." />
+            <button class="remove-link" onclick="removeLink(this)" title="Remove">×</button>
+          </div>
+        </div>
+        <button class="add-link" onclick="addLink()">+ Add another link</button>
+        <p class="field-error" id="err-portfolio">Please add at least one portfolio link</p>
+      </div>
+
+      <div class="field" style="margin-top: 1.25rem;">
+        <label>Anything else you want brands to know? <span style="color:var(--muted); font-weight:300">(optional)</span></label>
+        <textarea id="bio" placeholder="e.g. I specialize in authentic unboxing content for beauty and wellness brands..."></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-back" onclick="prevStep(5)">← Back</button>
+        <button class="btn-next" onclick="submitForm()" style="background: var(--accent2); box-shadow: none;">
+          Submit application →
+        </button>
+      </div>
+    </div>
+
+    <!-- SUCCESS -->
+    <div class="success-screen" id="success-screen">
+      <div class="success-icon">🎉</div>
+      <h2>You're in the queue!</h2>
+      <p>We review every creator application manually. You'll hear back within 2–3 business days. Once approved, you'll start receiving briefs that match your niches.</p>
+      <a href="index.html" style="display:inline-flex; align-items:center; gap:0.5rem; background: var(--accent2); color: #fff; font-family: var(--font-body); font-weight:500; font-size:0.95rem; padding:0.85rem 2rem; border-radius:100px; text-decoration:none; transition: opacity 0.2s;" onmouseover="this.style.opacity=0.85" onmouseout="this.style.opacity=1">
+        Back to ClipDrop →
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  let currentStep = 1;
+  const totalSteps = 5;
+  const selectedPlatforms = new Set();
+  const selectedNiches = new Set();
+  const selectedFormats = new Set();
+
+  function updateProgress(step) {
+    const pct = (step / totalSteps) * 100;
+    document.getElementById('progress-fill').style.width = pct + '%';
+
+    document.querySelectorAll('.step-dot').forEach(el => {
+      const s = parseInt(el.dataset.step);
+      el.classList.remove('active', 'done');
+      if (s === step) el.classList.add('active');
+      else if (s < step) el.classList.add('done');
+    });
+  }
+
+  function showStep(step) {
+    document.querySelectorAll('.form-step').forEach(el => el.classList.remove('active'));
+    const el = document.getElementById('step-' + step);
+    if (el) { el.classList.add('active'); }
+    updateProgress(step);
+    currentStep = step;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function clearError(id) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  }
+
+  function showError(id, inputId) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'block';
+    if (inputId) {
+      const input = document.getElementById(inputId);
+      if (input) input.classList.add('has-error');
+    }
+    return false;
+  }
+
+  function validateStep(step) {
+    let valid = true;
+
+    if (step === 1) {
+      const fn = document.getElementById('first-name').value.trim();
+      const ln = document.getElementById('last-name').value.trim();
+      const em = document.getElementById('email').value.trim();
+      const pw = document.getElementById('password').value;
+      const cpw = document.getElementById('confirm-password').value;
+
+      ['first-name','last-name','email','password','confirm-password'].forEach(id => {
+        document.getElementById(id).classList.remove('has-error');
+        clearError('err-' + id);
+      });
+
+      if (!fn) { showError('err-first-name', 'first-name'); valid = false; }
+      if (!ln) { showError('err-last-name', 'last-name'); valid = false; }
+      if (!em || !em.includes('@')) { showError('err-email', 'email'); valid = false; }
+      if (pw.length < 8) { showError('err-password', 'password'); valid = false; }
+      if (pw !== cpw) { showError('err-confirm-password', 'confirm-password'); valid = false; }
+    }
+
+    if (step === 2) {
+      clearError('err-platforms');
+      if (selectedPlatforms.size === 0) { showError('err-platforms'); valid = false; }
+    }
+
+    if (step === 3) {
+      clearError('err-niches');
+      if (selectedNiches.size === 0) { showError('err-niches'); valid = false; }
+    }
+
+    if (step === 4) {
+      ['address1','city','state','zip','country'].forEach(id => {
+        document.getElementById(id).classList.remove('has-error');
+        clearError('err-' + id);
+      });
+      const fields = [
+        ['address1','err-address1'],
+        ['city','err-city'],
+        ['state','err-state'],
+        ['zip','err-zip'],
+        ['country','err-country']
+      ];
+      fields.forEach(([id, err]) => {
+        if (!document.getElementById(id).value.trim()) {
+          showError(err, id); valid = false;
+        }
+      });
+    }
+
+    if (step === 5) {
+      clearError('err-portfolio');
+      const links = document.querySelectorAll('#video-links input[type="url"]');
+      const hasLink = Array.from(links).some(i => i.value.trim().length > 0);
+      if (!hasLink) { showError('err-portfolio'); valid = false; }
+    }
+
+    return valid;
+  }
+
+  function nextStep(step) {
+    if (!validateStep(step)) return;
+    if (step < totalSteps) showStep(step + 1);
+  }
+
+  function prevStep(step) {
+    if (step > 1) showStep(step - 1);
+  }
+
+  function togglePlatform(btn, key) {
+    const isFormat = btn.closest('#formats');
+    const set = isFormat ? selectedFormats : selectedPlatforms;
+
+    if (btn.classList.contains('selected')) {
+      btn.classList.remove('selected');
+      set.delete(key);
+    } else {
+      btn.classList.add('selected');
+      set.add(key);
+    }
+
+    if (!isFormat) {
+      ['tiktok','instagram','youtube','facebook'].forEach(p => {
+        const show = selectedPlatforms.has(p);
+        const f1 = document.getElementById(p + '-field');
+        const f2 = document.getElementById(p + '-followers-field');
+        if (f1) f1.style.display = show ? 'block' : 'none';
+        if (f2) f2.style.display = show ? 'block' : 'none';
+      });
+    }
+  }
+
+  function toggleNiche(btn) {
+    const label = btn.textContent.trim();
+    if (btn.classList.contains('selected')) {
+      btn.classList.remove('selected');
+      selectedNiches.delete(label);
+    } else {
+      btn.classList.add('selected');
+      selectedNiches.add(label);
+    }
+  }
+
+  function updateRate(val) {
+    document.getElementById('rate-display').innerHTML = '$' + val + ' <span>per video</span>';
+  }
+
+  function addLink() {
+    const container = document.getElementById('video-links');
+    const row = document.createElement('div');
+    row.className = 'video-link-row';
+    row.innerHTML = `<input type="url" placeholder="https://tiktok.com/@you/video/..." /><button class="remove-link" onclick="removeLink(this)" title="Remove">×</button>`;
+    container.appendChild(row);
+  }
+
+  function removeLink(btn) {
+    const rows = document.querySelectorAll('.video-link-row');
+    if (rows.length > 1) btn.closest('.video-link-row').remove();
+  }
+
+  async function submitForm() {
+    if (!validateStep(5)) return;
+
+    // Collect portfolio links
+    const portfolioLinks = Array.from(document.querySelectorAll('#video-links input[type="url"]'))
+      .map(i => i.value.trim()).filter(Boolean);
+
+    // Build payload
+    const payload = {
+      email:                document.getElementById('email').value.trim(),
+      password:             document.getElementById('password').value,
+      first_name:           document.getElementById('first-name').value.trim(),
+      last_name:            document.getElementById('last-name').value.trim(),
+      handle_tiktok:        document.getElementById('tiktok-handle')?.value.trim() || '',
+      handle_instagram:     document.getElementById('instagram-handle')?.value.trim() || '',
+      followers_tiktok:     document.getElementById('tiktok-followers')?.value || '',
+      followers_instagram:  document.getElementById('instagram-followers')?.value || '',
+      niches:               Array.from(selectedNiches),
+      formats:              Array.from(selectedFormats),
+      rate:                 parseInt(document.getElementById('rate-slider').value),
+      turnaround:           document.getElementById('turnaround').value,
+      portfolio_links:      portfolioLinks,
+      bio:                  document.getElementById('bio').value.trim(),
+      address_line1:        document.getElementById('address1').value.trim(),
+      address_line2:        document.getElementById('address2').value.trim(),
+      city:                 document.getElementById('city').value.trim(),
+      state:                document.getElementById('state').value.trim(),
+      zip:                  document.getElementById('zip').value.trim(),
+      country:              document.getElementById('country').value,
+    };
+
+    // Disable submit button and show loading
+    const btn = document.querySelector('#step-5 .btn-next');
+    btn.disabled = true;
+    btn.textContent = 'Submitting...';
+
+    try {
+      const res = await fetch('/api/auth/register/creator', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        // Show error to user
+        btn.disabled = false;
+        btn.textContent = 'Submit application →';
+        alert(data.error || 'Something went wrong. Please try again.');
+        return;
+      }
+
+      // Save token for later use
+      localStorage.setItem('clipdrop_token', data.token);
+      localStorage.setItem('clipdrop_user', JSON.stringify(data.user));
+
+      // Show success screen
+      document.querySelectorAll('.form-step').forEach(el => el.classList.remove('active'));
+      document.getElementById('progress-fill').style.width = '100%';
+      document.querySelectorAll('.step-dot').forEach(el => { el.classList.remove('active'); el.classList.add('done'); });
+      const ss = document.getElementById('success-screen');
+      ss.style.display = 'flex';
+
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = 'Submit application →';
+      alert('Network error — make sure the server is running on localhost:3000');
+    }
+  }
+</script>
+</body>
+</html>

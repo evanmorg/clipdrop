@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ClipDrop — Admin Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0A0A0A; --bg2: #111111; --bg3: #181818; --bg4: #1E1E1E;
+    --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.12);
+    --text: #F0EDE8; --muted: rgba(240,237,232,0.45); --muted2: rgba(240,237,232,0.65);
+    --accent: #E8FF47; --accent2: #FF6B35; --accent-dim: rgba(232,255,71,0.08);
+    --green: #4ADE80; --green-dim: rgba(74,222,128,0.1);
+    --red: #FF5C5C; --red-dim: rgba(255,92,92,0.1);
+    --blue: #60A5FA; --blue-dim: rgba(96,165,250,0.1);
+    --amber: #FBBF24; --amber-dim: rgba(251,191,36,0.1);
+    --sidebar-w: 220px;
+    --font-head: 'Syne', sans-serif; --font-body: 'DM Sans', sans-serif;
+  }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font-body); font-size: 14px; line-height: 1.5; overflow: hidden; }
+
+  /* LAYOUT */
+  .app { display: grid; grid-template-columns: var(--sidebar-w) 1fr; height: 100vh; }
+
+  /* SIDEBAR */
+  .sidebar {
+    background: var(--bg2); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    padding: 0; overflow-y: auto;
+  }
+  .sidebar-logo {
+    padding: 1.5rem 1.25rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-head); font-size: 1.2rem; font-weight: 800;
+    letter-spacing: -0.02em; text-decoration: none; color: var(--text);
+    display: block;
+  }
+  .sidebar-logo span { color: var(--accent); }
+  .sidebar-label {
+    font-size: 0.65rem; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--muted);
+    padding: 1.25rem 1.25rem 0.4rem;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 0.65rem;
+    padding: 0.6rem 1.25rem; cursor: pointer;
+    color: var(--muted2); font-size: 0.85rem; font-weight: 400;
+    border-left: 2px solid transparent;
+    transition: all 0.15s; user-select: none;
+    background: none; border-top: none; border-right: none; border-bottom: none;
+    width: 100%; text-align: left; font-family: var(--font-body);
+  }
+  .nav-item:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+  .nav-item.active { color: var(--accent); border-left-color: var(--accent); background: var(--accent-dim); font-weight: 500; }
+  .nav-item .icon { width: 16px; text-align: center; font-size: 0.9rem; flex-shrink: 0; }
+  .nav-badge { margin-left: auto; background: var(--accent2); color: #fff; font-size: 0.65rem; font-weight: 600; padding: 0.1rem 0.45rem; border-radius: 100px; }
+  .sidebar-footer { margin-top: auto; padding: 1rem 1.25rem; border-top: 1px solid var(--border); }
+  .admin-pill { display: flex; align-items: center; gap: 0.6rem; }
+  .admin-avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--accent-dim); border: 1px solid rgba(232,255,71,0.2); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+  .admin-info strong { display: block; font-size: 0.8rem; font-weight: 500; }
+  .admin-info span { font-size: 0.7rem; color: var(--muted); }
+
+  /* MAIN */
+  .main { display: flex; flex-direction: column; overflow: hidden; }
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.9rem 1.75rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg); flex-shrink: 0;
+  }
+  .topbar-left h1 { font-family: var(--font-head); font-size: 1.1rem; font-weight: 700; }
+  .topbar-left p { font-size: 0.78rem; color: var(--muted); margin-top: 0.1rem; }
+  .topbar-right { display: flex; align-items: center; gap: 0.75rem; }
+  .topbar-btn {
+    background: var(--bg2); border: 1px solid var(--border2);
+    color: var(--muted2); font-family: var(--font-body); font-size: 0.78rem;
+    padding: 0.45rem 0.9rem; border-radius: 8px; cursor: pointer;
+    transition: all 0.15s; display: flex; align-items: center; gap: 0.4rem;
+  }
+  .topbar-btn:hover { color: var(--text); border-color: var(--border2); }
+  .topbar-btn.primary { background: var(--accent); color: #0A0A0A; border-color: var(--accent); font-weight: 500; }
+  .topbar-btn.primary:hover { opacity: 0.9; }
+
+  .content { flex: 1; overflow-y: auto; padding: 1.5rem 1.75rem; }
+
+  /* VIEWS */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* METRIC CARDS */
+  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+  .metric-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 14px; padding: 1.1rem 1.25rem;
+  }
+  .metric-label { font-size: 0.72rem; color: var(--muted); letter-spacing: 0.03em; margin-bottom: 0.5rem; text-transform: uppercase; font-weight: 500; }
+  .metric-value { font-family: var(--font-head); font-size: 1.8rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1; margin-bottom: 0.4rem; }
+  .metric-delta { font-size: 0.72rem; display: flex; align-items: center; gap: 0.3rem; }
+  .delta-up { color: var(--green); }
+  .delta-down { color: var(--red); }
+  .delta-neutral { color: var(--muted); }
+
+  /* CHART PLACEHOLDER */
+  .chart-row { display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem; }
+  .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+  .card-title { font-family: var(--font-head); font-size: 0.88rem; font-weight: 700; }
+  .card-action { font-size: 0.72rem; color: var(--muted); cursor: pointer; transition: color 0.15s; background: none; border: none; font-family: var(--font-body); }
+  .card-action:hover { color: var(--accent); }
+
+  /* MINI BAR CHART */
+  .bar-chart { display: flex; align-items: flex-end; gap: 4px; height: 80px; }
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .bar { width: 100%; background: var(--bg3); border-radius: 4px 4px 0 0; transition: background 0.2s; cursor: pointer; }
+  .bar:hover { background: var(--accent); }
+  .bar.accent { background: var(--accent); opacity: 0.85; }
+  .bar-lbl { font-size: 0.6rem; color: var(--muted); }
+
+  /* DONUT PLACEHOLDER */
+  .donut-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; padding: 0.5rem 0; }
+  .donut { position: relative; width: 100px; height: 100px; }
+  .donut svg { transform: rotate(-90deg); }
+  .donut-label { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .donut-label strong { font-family: var(--font-head); font-size: 1.1rem; font-weight: 800; }
+  .donut-label span { font-size: 0.6rem; color: var(--muted); }
+  .donut-legend { display: flex; flex-direction: column; gap: 0.4rem; width: 100%; }
+  .legend-item { display: flex; align-items: center; justify-content: space-between; font-size: 0.72rem; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .legend-left { display: flex; align-items: center; gap: 0.4rem; color: var(--muted2); }
+  .legend-right { font-weight: 500; }
+
+  /* TABLE */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th { font-size: 0.68rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 0 0.75rem 0.75rem; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  td { padding: 0.8rem 0.75rem; border-bottom: 1px solid var(--border); font-size: 0.82rem; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  /* BADGES */
+  .badge { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.68rem; font-weight: 500; padding: 0.2rem 0.6rem; border-radius: 100px; white-space: nowrap; }
+  .badge-green { background: var(--green-dim); color: var(--green); }
+  .badge-amber { background: var(--amber-dim); color: var(--amber); }
+  .badge-red { background: var(--red-dim); color: var(--red); }
+  .badge-blue { background: var(--blue-dim); color: var(--blue); }
+  .badge-muted { background: rgba(255,255,255,0.06); color: var(--muted2); }
+  .badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+  /* AVATAR ROW */
+  .user-cell { display: flex; align-items: center; gap: 0.6rem; }
+  .mini-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; flex-shrink: 0; }
+
+  /* ACTION BTNS */
+  .tbl-btn { background: none; border: 1px solid var(--border2); border-radius: 6px; color: var(--muted2); font-family: var(--font-body); font-size: 0.72rem; padding: 0.25rem 0.6rem; cursor: pointer; transition: all 0.15s; }
+  .tbl-btn:hover { color: var(--text); border-color: var(--border2); }
+  .tbl-btn.approve { border-color: rgba(74,222,128,0.3); color: var(--green); }
+  .tbl-btn.approve:hover { background: var(--green-dim); }
+  .tbl-btn.pay { border-color: rgba(232,255,71,0.3); color: var(--accent); }
+  .tbl-btn.pay:hover { background: var(--accent-dim); }
+  .tbl-btn.danger { border-color: rgba(255,92,92,0.3); color: var(--red); }
+  .tbl-btn.danger:hover { background: var(--red-dim); }
+  .btn-group { display: flex; gap: 0.35rem; }
+
+  /* PROGRESS BAR */
+  .order-progress { display: flex; gap: 3px; align-items: center; }
+  .prog-step { height: 4px; flex: 1; border-radius: 2px; background: var(--bg3); }
+  .prog-step.done { background: var(--green); }
+  .prog-step.active { background: var(--accent); }
+
+  /* FILTERS */
+  .filters { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+  .filter-btn { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; color: var(--muted2); font-family: var(--font-body); font-size: 0.75rem; padding: 0.35rem 0.8rem; cursor: pointer; transition: all 0.15s; }
+  .filter-btn:hover { color: var(--text); }
+  .filter-btn.active { background: var(--accent-dim); border-color: rgba(232,255,71,0.25); color: var(--accent); }
+  .search-input { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: var(--font-body); font-size: 0.78rem; padding: 0.35rem 0.75rem; outline: none; width: 180px; transition: border-color 0.2s; }
+  .search-input:focus { border-color: var(--accent); }
+  .search-input::placeholder { color: var(--muted); }
+
+  /* STAT ROW */
+  .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1rem; }
+  .stat-mini { background: var(--bg3); border-radius: 10px; padding: 0.75rem 1rem; }
+  .stat-mini-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.25rem; }
+  .stat-mini-val { font-family: var(--font-head); font-size: 1.1rem; font-weight: 700; }
+
+  /* PAYOUT ROW */
+  .payout-amount { font-family: var(--font-head); font-size: 0.95rem; font-weight: 700; color: var(--accent); }
+
+  /* DISPUTE CARD */
+  .dispute-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 0.75rem; }
+  .dispute-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 0.6rem; }
+  .dispute-title { font-size: 0.85rem; font-weight: 500; }
+  .dispute-meta { font-size: 0.72rem; color: var(--muted); margin-top: 0.15rem; }
+  .dispute-body { font-size: 0.8rem; color: var(--muted2); line-height: 1.55; margin-bottom: 0.75rem; }
+  .dispute-actions { display: flex; gap: 0.5rem; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <a href="index.html" class="sidebar-logo">Clip<span>Drop</span></a>
+
+    <p class="sidebar-label">Overview</p>
+    <button class="nav-item active" onclick="switchView('revenue', this)"><span class="icon">💰</span> Revenue</button>
+    <button class="nav-item" onclick="switchView('orders', this)"><span class="icon">📦</span> Orders <span class="nav-badge">3</span></button>
+
+    <p class="sidebar-label">People</p>
+    <button class="nav-item" onclick="switchView('creators', this)"><span class="icon">🎬</span> Creators</button>
+    <button class="nav-item" onclick="switchView('sellers', this)"><span class="icon">🛒</span> Sellers</button>
+
+    <p class="sidebar-label">Finance</p>
+    <button class="nav-item" onclick="switchView('payouts', this)"><span class="icon">⚡</span> Payouts <span class="nav-badge">5</span></button>
+    <button class="nav-item" onclick="switchView('disputes', this)"><span class="icon">🚩</span> Disputes <span class="nav-badge">2</span></button>
+
+    <div class="sidebar-footer">
+      <div class="admin-pill">
+        <div class="admin-avatar">AD</div>
+        <div class="admin-info">
+          <strong>Admin</strong>
+          <span>clipdrop.co</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <h1 id="view-title">Revenue & Earnings</h1>
+        <p id="view-sub">Last updated just now · April 2026</p>
+      </div>
+      <div class="topbar-right">
+        <button class="topbar-btn">📥 Export</button>
+        <button class="topbar-btn">🔔</button>
+        <button class="topbar-btn primary">+ New order</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ══════════════════════════════════════ -->
+      <!-- REVENUE VIEW                           -->
+      <!-- ══════════════════════════════════════ -->
+      <div class="view active" id="view-revenue">
+        <div class="metrics">
+          <div class="metric-card">
+            <p class="metric-label">Total revenue</p>
+            <p class="metric-value" style="color: var(--accent);">$18,340</p>
+            <p class="metric-delta delta-up">↑ 24% vs last month</p>
+          </div>
+          <div class="metric-card">
+            <p class="metric-label">Platform fees kept</p>
+            <p class="metric-value">$4,210</p>
+            <p class="metric-delta delta-up">↑ 18% vs last month</p>
+          </div>
+          <div class="metric-card">
+            <p class="metric-label">Paid to creators</p>
+            <p class="metric-value">$11,890</p>
+            <p class="metric-delta delta-neutral">65% of GMV</p>
+          </div>
+          <div class="metric-card">
+            <p class="metric-label">Avg order value</p>
+            <p class="metric-value">$73</p>
+            <p class="metric-delta delta-up">↑ $8 vs last month</p>
+          </div>
+        </div>
+
+        <div class="chart-row">
+          <div class="card">
+            <div class="card-header">
+              <p class="card-title">Monthly revenue</p>
+              <button class="card-action">View all →</button>
+            </div>
+            <div class="bar-chart">
+              <div class="bar-col"><div class="bar" style="height:28%" title="$5.1k"></div><span class="bar-lbl">Nov</span></div>
+              <div class="bar-col"><div class="bar" style="height:35%" title="$6.4k"></div><span class="bar-lbl">Dec</span></div>
+              <div class="bar-col"><div class="bar" style="height:30%" title="$5.5k"></div><span class="bar-lbl">Jan</span></div>
+              <div class="bar-col"><div class="bar" style="height:48%" title="$8.8k"></div><span class="bar-lbl">Feb</span></div>
+              <div class="bar-col"><div class="bar" style="height:55%" title="$10.1k"></div><span class="bar-lbl">Mar</span></div>
+              <div class="bar-col"><div class="bar accent" style="height:100%" title="$18.3k"></div><span class="bar-lbl" style="color:var(--accent)">Apr</span></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><p class="card-title">Revenue split</p></div>
+            <div class="donut-wrap">
+              <div class="donut">
+                <svg viewBox="0 0 36 36" width="100" height="100">
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--bg3)" stroke-width="3.5"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--accent)" stroke-width="3.5" stroke-dasharray="23 77" stroke-linecap="round"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--accent2)" stroke-width="3.5" stroke-dasharray="65 35" stroke-dashoffset="-23" stroke-linecap="round"/>
+                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--bg4)" stroke-width="3.5" stroke-dasharray="12 88" stroke-dashoffset="-88" stroke-linecap="round"/>
+                </svg>
+                <div class="donut-label"><strong>$18k</strong><span>total</span></div>
+              </div>
+              <div class="donut-legend">
+                <div class="legend-item"><div class="legend-left"><div class="legend-dot" style="background:var(--accent2)"></div>Creator payouts</div><div class="legend-right">65%</div></div>
+                <div class="legend-item"><div class="legend-left"><div class="legend-dot" style="background:var(--accent)"></div>Platform fee</div><div class="legend-right">23%</div></div>
+                <div class="legend-item"><div class="legend-left"><div class="legend-dot" style="background:var(--bg4)"></div>Shipping</div><div class="legend-right">12%</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><p class="card-title">Recent transactions</p><button class="card-action">View all →</button></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Order</th><th>Seller</th><th>Creator</th><th>Amount</th><th>Fee</th><th>Date</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td>#CD-48201</td><td>Jake M.</td><td>Maya Rivera</td><td>$75</td><td>$17</td><td>Apr 21</td><td><span class="badge badge-green">Completed</span></td></tr>
+                <tr><td>#CD-48199</td><td>Sarah K.</td><td>Tyler Webb</td><td>$90</td><td>$20</td><td>Apr 21</td><td><span class="badge badge-amber">In review</span></td></tr>
+                <tr><td>#CD-48195</td><td>Luis R.</td><td>Auto-matched</td><td>$39</td><td>$9</td><td>Apr 20</td><td><span class="badge badge-blue">Filming</span></td></tr>
+                <tr><td>#CD-48190</td><td>Emma T.</td><td>Priya Shah</td><td>$60</td><td>$14</td><td>Apr 20</td><td><span class="badge badge-green">Completed</span></td></tr>
+                <tr><td>#CD-48185</td><td>Noah W.</td><td>Jake Kowalski</td><td>$120</td><td>$27</td><td>Apr 19</td><td><span class="badge badge-red">Dispute</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════ -->
+      <!-- ORDERS VIEW                            -->
+      <!-- ══════════════════════════════════════ -->
+      <div class="view" id="view-orders">
+        <div class="metrics" style="grid-template-columns: repeat(4,1fr)">
+          <div class="metric-card"><p class="metric-label">Total orders</p><p class="metric-value">251</p><p class="metric-delta delta-up">↑ 31 this month</p></div>
+          <div class="metric-card"><p class="metric-label">Active</p><p class="metric-value" style="color:var(--accent)">38</p><p class="metric-delta delta-neutral">In progress</p></div>
+          <div class="metric-card"><p class="metric-label">Awaiting approval</p><p class="metric-value" style="color:var(--amber)">9</p><p class="metric-delta delta-neutral">Needs seller review</p></div>
+          <div class="metric-card"><p class="metric-label">Completed</p><p class="metric-value" style="color:var(--green)">204</p><p class="metric-delta delta-up">81% completion rate</p></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <p class="card-title">All orders</p>
+            <div class="filters" style="margin:0">
+              <input class="search-input" placeholder="Search orders..." />
+              <button class="filter-btn active">All</button>
+              <button class="filter-btn">Active</button>
+              <button class="filter-btn">Awaiting</button>
+              <button class="filter-btn">Completed</button>
+              <button class="filter-btn">Disputed</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Order ID</th><th>Seller</th><th>Product</th><th>Creator</th><th>Progress</th><th>Status</th><th>Due</th><th>Actions</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td style="font-family:var(--font-head);font-size:0.78rem">#CD-48201</td>
+                  <td><div class="user-cell"><div class="mini-avatar" style="background:var(--accent-dim);color:var(--accent)">JM</div>Jake M.</div></td>
+                  <td style="max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Magnetic Phone Mount</td>
+                  <td>Maya Rivera</td>
+                  <td><div class="order-progress"><div class="prog-step done"></div><div class="prog-step done"></div><div class="prog-step done"></div><div class="prog-step done"></div></div></td>
+                  <td><span class="badge badge-green">Completed</span></td>
+                  <td style="color:var(--muted)">Apr 22</td>
+                  <td><div class="btn-group"><button class="tbl-btn">View</button></div></td>
+                </tr>
+                <tr>
+                  <td style="font-family:var(--font-head);font-size:0.78rem">#CD-48199</td>
+                  <td><div class="user-cell"><div class="mini-avatar" style="background:rgba(255,107,53,0.12);color:var(--accent2)">SK</div>Sarah K.</div></td>
+                  <td style="max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">LED Desk Lamp</td>
+                  <td>Tyler Webb</td>
+                  <td><div class="order-progress"><div class="prog-step done"></div><div class="prog-step done"></div><div class="prog-step done"></div><div class="prog-step active"></div></div></td>
+                  <td><span class="badge badge-amber">Awaiting approval</span></td>
+                  <td style="color:var(--amber)">Apr 22</td>
+                  <td><div class="btn-group"><button class="tbl-btn">View</button><button class="tbl-btn approve">Nudge</button></div></td>
+                </tr>
+                <tr>
+                  <td style="font-family:var(--font-head);font-size:0.78rem">#CD-48195</td>
+                  <td><div class="user-cell"><div class="mini-avatar" style="background:var(--blue-dim);color:var(--blue)">LR</div>Luis R.</div></td>
+                  <td style="max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Posture Corrector</td>
+                  <td>Auto-matched</td>
+                  <td><div class="order-progress"><div class="prog-step done"></div><div class="prog-step done"></div><div class="prog-step active"></div><div class="prog-step"></div></div></td>
+                  <td><span class="badge badge-blue">Filming</span></td>
+                  <td style="color:var(--muted)">Apr 26</td>
+                  <td><div class="btn-group"><button class="tbl-btn">View</button></div></td>
+                </tr>
+                <tr>
+                  <td style="font-family:var(--font-head);font-size:0.78rem">#CD-48185</td>
+                  <td><div class="user-cell"><div class="mini-avatar" style="background:var(--red-dim);color:var(--red)">NW</div>Noah W.</div></td>
+                  <td style="max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Portable Blender</td>
+                  <td>Jake Kowalski</td>
+                  <td><div class="order-progress"><div class="prog-step done"></div><div class="prog-step done"></div><div class="prog-step done"></div><div class="prog-step" style="background:var(--red);opacity:0.5"></div></div></td>
+                  <td><span class="badge badge-red">Disputed</span></td>
+                  <td style="color:var(--red)">Apr 19</td>
+                  <td><div class="btn-group"><button class="tbl-btn">View</button><button class="tbl-btn danger">Resolve</button></div></td>
+                </tr>
+                <tr>
+                  <td style="font-family:var(--font-head);font-size:0.78rem">#CD-48180</td>
+                  <td><div class="user-cell"><div class="mini-avatar" style="background:var(--green-dim);color:var(--green)">ET</div>Emma T.</div></td>
+                  <td style="max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Silk Pillowcase Set</td>
+                  <td>Priya Shah</td>
+                  <td><div class="order-progress"><div class="prog-step done"></div><div class="prog-step active"></div><div class="prog-step"></div><div class="prog-step"></div></div></td>
+                  <td><span class="badge badge-muted">Shipping</span></td>
+                  <td style="color:var(--muted)">Apr 28</td>
+                  <td><div class="btn-group"><button class="tbl-btn">View</button></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════ -->
+      <!-- CREATORS VIEW                          -->
+      <!-- ══════════════════════════════════════ -->
+      <div class="view" id="view-creators">
+        <div class="metrics" style="grid-template-columns:repeat(4,1fr)">
+          <div class="metric-card"><p class="metric-label">Total creators</p><p class="metric-value">84</p><p class="metric-delta delta-up">↑ 12 this month</p></div>
+          <div class="metric-card"><p class="metric-label">Pending approval</p><p class="metric-value" style="color:var(--amber)">7</p><p class="metric-delta delta-neutral">Awaiting review</p></div>
+          <div class="metric-card"><p class="metric-label">Active this month</p><p class="metric-value" style="color:var(--green)">61</p><p class="metric-delta delta-neutral">73% activity rate</p></div>
+          <div class="metric-card"><p class="metric-label">Avg delivery time</p><p class="metric-value">5.2d</p><p class="metric-delta delta-up">↓ 0.8 days faster</p></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <p class="card-title">Creator roster</p>
+            <div class="filters" style="margin:0">
+              <input class="search-input" placeholder="Search creators..." />
+              <button class="filter-btn active">All</button>
+              <button class="filter-btn">Pending</button>
+              <button class="filter-btn">Active</button>
+              <button class="filter-btn">Suspended</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Creator</th><th>Platforms</th><th>Niches</th><th>Rate</th><th>Jobs done</th><th>Rating</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><div class="user-cell"><div class="mini-avatar" style="background:var(--accent-dim);color:var(--accent)">MR</div><div><div>Maya Rivera</div><div style="font-size:0.68rem;color:var(--muted)">@mayavibes</div></div></div></td>
+                  <td style="color:var(--muted2)">TikTok · IG</td>
+                  <td style="color:var(--muted2)">Beauty, Wellness</td>
+                  <td style="font-family:var(--font-head);font-weight:700">$75</td>
+                  <td>48</td>
+                  <td>⭐ 4.9</td>
+                  <td><span class="badge badge-green">Active</span></td>
+                  <td><div class="btn-group"><button class="tbl-btn">View</button><button class="tbl-btn">Message</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="user-cell"><div class="mini-avatar" style="background:rgba(255,107,53,0.12);color:var(--accent2)">JK</div><div><div>Jake Kowalski</div><div style="font-size:0.68rem;color:var(--muted)">@jaketek</div></div></div></td>
+                  <td style="color:var(--muted2)">TikTok</td>
+                  <td style="color:var(--muted2)">Tech, Auto</td>
+                  <td style="font-family:var(--font-head);font-weight:700">$120</td>
+                  <td>31</td>
+                  <td>⭐ 4.6</td>
+                  <td><span class="badge badge-amber">In dispute</span></td>
+                  <td><div class="btn-group"><button class="tbl-btn">View</button><button class="tbl-btn danger">Suspend</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="user-cell"><div class="mini-avatar" style="background:var(--blue-dim);color:var(--blue)">PS</div><div><div>Priya Shah</div><div style="font-size:0.68rem;color:var(--muted)">@priyaathome</div></div></div></td>
+                  <td style="color:var(--muted2)">Instagram</td>
+                  <td style="color:var(--muted2)">Home, Kitchen</td>
+                  <td style="font-family:var(--font-head);font-weight:700">$60</td>
+                  <td>22</td>
+                  <td>⭐ 4.8</td>
+                  <td><span class="badge badge-green">Active</span></td>
+                  <td><div class="btn-group"><button class="tbl-btn">View</button><button class="tbl-btn">Message</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="user-cell"><div class="mini-avatar" style="background:var(--green-dim);color:var(--green)">TW</div><div><div>Tyler Webb</div><div style="font-size:0.68rem;color:var(--muted)">@tylerfits</div></div></div></td>
+                  <td style="color:var(--muted2)">TikTok · YT</td>
+                  <td style="color:var(--muted2)">Fitness, Health</td>
+                  <td style="font-family:var(--font-head);font-weight:700">$90</td>
+                  <td>17</td>
+                  <td>⭐ 4.7</td>
+                  <td><span class="badge badge-green">Active</span></td>
+                  <td><div class="btn-group"><button class="tbl-btn">View</button><button class="tbl-btn">Message</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="user-cell"><div class="mini-avatar" style="background:var(--amber-dim);color:var(--amber)">AL</div><div><div>Aisha Li</div><div style="font-size:0.68rem;color:var(--muted)">@aishacreates</div></div></div></td>
+                  <td style="color:var(--muted2)">TikTok · IG</td>
+                  <td style="color:var(--muted2)">Fashion, Beauty</td>
+                  <td style="font-family:var(--font-head);font-weight:700">$55</td>
+                  <td>0</td>
+                  <td style="color:var(--muted)">—</td>
+                  <td><span class="badge badge-amber">Pending</span></td>
+                  <td><div class="btn-group"><button class="tbl-btn approve">Approve</button><button class="tbl-btn danger">Reject</button></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════ -->
+      <!-- SELLERS VIEW                           -->
+      <!-- ══════════════════════════════════════ -->
+      <div class="view" id="view-sellers">
+        <div class="metrics" style="grid-template-columns:repeat(4,1fr)">
+          <div class="metric-card"><p class="metric-label">Total sellers</p><p class="metric-value">312</p><p class="metric-delta delta-up">↑ 44 this month</p></div>
+          <div class="metric-card"><p class="metric-label">On Growth plan</p><p class="metric-value" style="color:var(--accent)">89</p><p class="metric-delta delta-neutral">$149/mo each</p></div>
+          <div class="metric-card"><p class="metric-label">On Scale plan</p><p class="metric-value" style="color:var(--green)">21</p><p class="metric-delta delta-neutral">$399/mo each</p></div>
+          <div class="metric-card"><p class="metric-label">MRR</p><p class="metric-value">$21,600</p><p class="metric-delta delta-up">↑ 18% vs last month</p></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <p class="card-title">Seller accounts</p>
+            <div class="filters" style="margin:0">
+              <input class="search-input" placeholder="Search sellers..." />
+              <button class="filter-btn active">All</button>
+              <button class="filter-btn">Try</button>
+              <button class="filter-btn">Growth</button>
+              <button class="filter-btn">Scale</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Seller</th><th>Plan</th><th>Orders</th><th>Total spent</th><th>Last order</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><div class="user-cell"><div class="mini-avatar" style="background:var(--accent-dim);color:var(--accent)">JM</div><div><div>Jake M.</div><div style="font-size:0.68rem;color:var(--muted)">jake@store.com</div></div></div></td>
+                  <td><span class="badge badge-green">Scale</span></td>
+                  <td>34</td><td style="font-family:var(--font-head);font-weight:600">$2,480</td><td style="color:var(--muted)">Apr 21</td>
+                  <td><span class="badge badge-green">Active</span></td>
+                  <td><div class="btn-group"><button class="tbl-btn">View</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="user-cell"><div class="mini-avatar" style="background:rgba(255,107,53,0.12);color:var(--accent2)">SK</div><div><div>Sarah K.</div><div style="font-size:0.68rem;color:var(--muted)">sarah@brand.io</div></div></div></td>
+                  <td><span class="badge badge-blue">Growth</span></td>
+                  <td>12</td><td style="font-family:var(--font-head);font-weight:600">$876</td><td style="color:var(--muted)">Apr 21</td>
+                  <td><span class="badge badge-green">Active</span></td>
+                  <td><div class="btn-group"><button class="tbl-btn">View</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="user-cell"><div class="mini-avatar" style="background:var(--blue-dim);color:var(--blue)">LR</div><div><div>Luis R.</div><div style="font-size:0.68rem;color:var(--muted)">luis@shopco.com</div></div></div></td>
+                  <td><span class="badge badge-muted">Try</span></td>
+                  <td>1</td><td style="font-family:var(--font-head);font-weight:600">$39</td><td style="color:var(--muted)">Apr 20</td>
+                  <td><span class="badge badge-green">Active</span></td>
+                  <td><div class="btn-group"><button class="tbl-btn">View</button><button class="tbl-btn">Upgrade</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="user-cell"><div class="mini-avatar" style="background:var(--red-dim);color:var(--red)">NW</div><div><div>Noah W.</div><div style="font-size:0.68rem;color:var(--muted)">noah@dropco.com</div></div></div></td>
+                  <td><span class="badge badge-blue">Growth</span></td>
+                  <td>8</td><td style="font-family:var(--font-head);font-weight:600">$584</td><td style="color:var(--muted)">Apr 19</td>
+                  <td><span class="badge badge-red">Disputed</span></td>
+                  <td><div class="btn-group"><button class="tbl-btn">View</button><button class="tbl-btn danger">Flag</button></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════ -->
+      <!-- PAYOUTS VIEW                           -->
+      <!-- ══════════════════════════════════════ -->
+      <div class="view" id="view-payouts">
+        <div class="metrics" style="grid-template-columns:repeat(4,1fr)">
+          <div class="metric-card"><p class="metric-label">Pending payouts</p><p class="metric-value" style="color:var(--amber)">$1,840</p><p class="metric-delta delta-neutral">5 creators waiting</p></div>
+          <div class="metric-card"><p class="metric-label">Paid this month</p><p class="metric-value" style="color:var(--green)">$11,890</p><p class="metric-delta delta-up">↑ 22% vs last month</p></div>
+          <div class="metric-card"><p class="metric-label">Avg payout</p><p class="metric-value">$78</p><p class="metric-delta delta-neutral">Per completed video</p></div>
+          <div class="metric-card"><p class="metric-label">Payout speed</p><p class="metric-value">18h</p><p class="metric-delta delta-up">avg after approval</p></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <p class="card-title">Pending payouts</p>
+            <button class="topbar-btn primary" style="font-size:0.75rem;padding:0.4rem 0.9rem">Pay all ($1,840) →</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Creator</th><th>Order</th><th>Video approved</th><th>Amount</th><th>Method</th><th>Actions</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><div class="user-cell"><div class="mini-avatar" style="background:var(--accent-dim);color:var(--accent)">MR</div>Maya Rivera</div></td>
+                  <td style="font-family:var(--font-head);font-size:0.78rem">#CD-48201</td>
+                  <td style="color:var(--muted)">Apr 21, 2:14pm</td>
+                  <td class="payout-amount">$63</td>
+                  <td style="color:var(--muted2)">Stripe</td>
+                  <td><div class="btn-group"><button class="tbl-btn pay">Pay now</button><button class="tbl-btn">View</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="user-cell"><div class="mini-avatar" style="background:var(--green-dim);color:var(--green)">TW</div>Tyler Webb</div></td>
+                  <td style="font-family:var(--font-head);font-size:0.78rem">#CD-48199</td>
+                  <td style="color:var(--muted)">Apr 21, 11:52am</td>
+                  <td class="payout-amount">$76</td>
+                  <td style="color:var(--muted2)">Stripe</td>
+                  <td><div class="btn-group"><button class="tbl-btn pay">Pay now</button><button class="tbl-btn">View</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="user-cell"><div class="mini-avatar" style="background:var(--blue-dim);color:var(--blue)">PS</div>Priya Shah</div></td>
+                  <td style="font-family:var(--font-head);font-size:0.78rem">#CD-48190</td>
+                  <td style="color:var(--muted)">Apr 20, 4:30pm</td>
+                  <td class="payout-amount">$51</td>
+                  <td style="color:var(--muted2)">Stripe</td>
+                  <td><div class="btn-group"><button class="tbl-btn pay">Pay now</button><button class="tbl-btn">View</button></div></td>
+                </tr>
+                <tr>
+                  <td><div class="user-cell"><div class="mini-avatar" style="background:var(--amber-dim);color:var(--amber)">AL</div>Aisha Li</div></td>
+                  <td style="font-family:var(--font-head);font-size:0.78rem">#CD-48177</td>
+                  <td style="color:var(--muted)">Apr 19, 9:10am</td>
+                  <td class="payout-amount">$47</td>
+                  <td style="color:var(--muted2)">Stripe</td>
+                  <td><div class="btn-group"><button class="tbl-btn pay">Pay now</button><button class="tbl-btn">View</button></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════ -->
+      <!-- DISPUTES VIEW                          -->
+      <!-- ══════════════════════════════════════ -->
+      <div class="view" id="view-disputes">
+        <div class="metrics" style="grid-template-columns:repeat(4,1fr)">
+          <div class="metric-card"><p class="metric-label">Open disputes</p><p class="metric-value" style="color:var(--red)">2</p><p class="metric-delta delta-neutral">Needs attention</p></div>
+          <div class="metric-card"><p class="metric-label">Resolved this month</p><p class="metric-value" style="color:var(--green)">7</p><p class="metric-delta delta-up">↑ 2 vs last month</p></div>
+          <div class="metric-card"><p class="metric-label">Avg resolution time</p><p class="metric-value">2.4d</p><p class="metric-delta delta-up">↓ Faster than avg</p></div>
+          <div class="metric-card"><p class="metric-label">Refunds issued</p><p class="metric-value">$320</p><p class="metric-delta delta-neutral">This month</p></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><p class="card-title">Open disputes</p></div>
+
+          <div class="dispute-card">
+            <div class="dispute-header">
+              <div>
+                <p class="dispute-title">Video quality not as briefed — #CD-48185</p>
+                <p class="dispute-meta">Noah W. (seller) vs Jake Kowalski (creator) · Opened Apr 19</p>
+              </div>
+              <span class="badge badge-red">Open</span>
+            </div>
+            <p class="dispute-body">"The creator filmed in poor lighting and didn't mention the key features in the brief. The product wasn't even held properly in frame. I'm requesting a redo or refund."</p>
+            <div class="dispute-actions">
+              <button class="tbl-btn approve">Force revision</button>
+              <button class="tbl-btn pay">Issue refund</button>
+              <button class="tbl-btn">Message both</button>
+              <button class="tbl-btn danger">Suspend creator</button>
+            </div>
+          </div>
+
+          <div class="dispute-card">
+            <div class="dispute-header">
+              <div>
+                <p class="dispute-title">Product never received — #CD-48162</p>
+                <p class="dispute-meta">Emma T. (seller) vs Priya Shah (creator) · Opened Apr 17</p>
+              </div>
+              <span class="badge badge-amber">Under review</span>
+            </div>
+            <p class="dispute-body">"It's been 14 days since the order was placed and the creator says they haven't received the product yet. Tracking shows it's been delivered."</p>
+            <div class="dispute-actions">
+              <button class="tbl-btn approve">Mark delivered</button>
+              <button class="tbl-btn">Check tracking</button>
+              <button class="tbl-btn">Message creator</button>
+              <button class="tbl-btn pay">Reship product</button>
+            </div>
+          </div>
+
+          <div style="margin-top:1.5rem">
+            <div class="card-header"><p class="card-title" style="color:var(--muted)">Recently resolved</p></div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Order</th><th>Type</th><th>Seller</th><th>Creator</th><th>Resolution</th><th>Resolved</th></tr></thead>
+                <tbody>
+                  <tr><td style="font-family:var(--font-head);font-size:0.78rem">#CD-48140</td><td style="color:var(--muted2)">Quality issue</td><td>Sam P.</td><td>Tyler Webb</td><td><span class="badge badge-blue">Revision issued</span></td><td style="color:var(--muted)">Apr 18</td></tr>
+                  <tr><td style="font-family:var(--font-head);font-size:0.78rem">#CD-48102</td><td style="color:var(--muted2)">Late delivery</td><td>Mia C.</td><td>Maya Rivera</td><td><span class="badge badge-green">Refund issued</span></td><td style="color:var(--muted)">Apr 15</td></tr>
+                  <tr><td style="font-family:var(--font-head);font-size:0.78rem">#CD-48088</td><td style="color:var(--muted2)">Wrong product</td><td>Leo K.</td><td>Aisha Li</td><td><span class="badge badge-green">Resolved</span></td><td style="color:var(--muted)">Apr 12</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  const viewMeta = {
+    revenue:  { title: 'Revenue & Earnings',   sub: 'Last updated just now · April 2026' },
+    orders:   { title: 'Orders Overview',       sub: '251 total orders · 38 active' },
+    creators: { title: 'Creator Management',    sub: '84 creators · 7 pending approval' },
+    sellers:  { title: 'Seller Management',     sub: '312 sellers · $21,600 MRR' },
+    payouts:  { title: 'Payouts to Creators',   sub: '$1,840 pending · 5 creators waiting' },
+    disputes: { title: 'Disputes & Revisions',  sub: '2 open disputes · avg 2.4 day resolution' },
+  };
+
+  function switchView(id, btn) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('view-' + id).classList.add('active');
+    btn.classList.add('active');
+    document.getElementById('view-title').textContent = viewMeta[id].title;
+    document.getElementById('view-sub').textContent = viewMeta[id].sub;
+  }
+
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const group = this.closest('.filters');
+      group.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>

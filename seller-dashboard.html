@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ClipDrop — Seller Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0A0A0A; --bg2: #111111; --bg3: #181818; --bg4: #1E1E1E;
+    --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.12);
+    --text: #F0EDE8; --muted: rgba(240,237,232,0.45); --muted2: rgba(240,237,232,0.65);
+    --accent: #E8FF47; --accent2: #FF6B35;
+    --accent-dim: rgba(232,255,71,0.08); --accent2-dim: rgba(255,107,53,0.1);
+    --green: #4ADE80; --green-dim: rgba(74,222,128,0.1);
+    --red: #FF5C5C; --red-dim: rgba(255,92,92,0.1);
+    --blue: #60A5FA; --blue-dim: rgba(96,165,250,0.1);
+    --amber: #FBBF24; --amber-dim: rgba(251,191,36,0.1);
+    --sidebar-w: 220px;
+    --font-head: 'Syne', sans-serif; --font-body: 'DM Sans', sans-serif;
+  }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font-body); font-size: 14px; line-height: 1.5; overflow: hidden; }
+
+  .app { display: grid; grid-template-columns: var(--sidebar-w) 1fr; height: 100vh; }
+
+  /* SIDEBAR */
+  .sidebar { background: var(--bg2); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; }
+  .sidebar-logo { padding: 1.5rem 1.25rem 1.25rem; border-bottom: 1px solid var(--border); font-family: var(--font-head); font-size: 1.2rem; font-weight: 800; letter-spacing: -0.02em; text-decoration: none; color: var(--text); display: block; }
+  .sidebar-logo span { color: var(--accent); }
+  .sidebar-label { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding: 1.25rem 1.25rem 0.4rem; }
+  .nav-item { display: flex; align-items: center; gap: 0.65rem; padding: 0.6rem 1.25rem; cursor: pointer; color: var(--muted2); font-size: 0.85rem; font-weight: 400; border-left: 2px solid transparent; transition: all 0.15s; background: none; border-top: none; border-right: none; border-bottom: none; width: 100%; text-align: left; font-family: var(--font-body); }
+  .nav-item:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+  .nav-item.active { color: var(--accent); border-left-color: var(--accent); background: var(--accent-dim); font-weight: 500; }
+  .nav-item .icon { width: 16px; text-align: center; font-size: 0.9rem; flex-shrink: 0; }
+  .nav-badge { margin-left: auto; background: var(--accent2); color: #fff; font-size: 0.65rem; font-weight: 600; padding: 0.1rem 0.45rem; border-radius: 100px; }
+
+  .sidebar-footer { margin-top: auto; padding: 1rem 1.25rem; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 0.75rem; }
+  .seller-pill { display: flex; align-items: center; gap: 0.6rem; }
+  .seller-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent-dim); border: 1px solid rgba(232,255,71,0.2); display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+  .seller-info strong { display: block; font-size: 0.82rem; font-weight: 500; }
+  .seller-info span { font-size: 0.7rem; color: var(--muted); }
+  .logout-btn { display: flex; align-items: center; gap: 0.5rem; background: none; border: 1px solid var(--border2); border-radius: 8px; color: var(--muted); font-family: var(--font-body); font-size: 0.78rem; padding: 0.5rem 0.75rem; cursor: pointer; width: 100%; transition: all 0.2s; }
+  .logout-btn:hover { color: var(--red); border-color: rgba(255,92,92,0.3); background: var(--red-dim); }
+
+  /* MAIN */
+  .main { display: flex; flex-direction: column; overflow: hidden; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 0.9rem 1.75rem; border-bottom: 1px solid var(--border); background: var(--bg); flex-shrink: 0; }
+  .topbar-left h1 { font-family: var(--font-head); font-size: 1.1rem; font-weight: 700; }
+  .topbar-left p { font-size: 0.78rem; color: var(--muted); margin-top: 0.1rem; }
+  .topbar-right { display: flex; align-items: center; gap: 0.75rem; }
+  .topbar-btn { background: var(--bg2); border: 1px solid var(--border2); color: var(--muted2); font-family: var(--font-body); font-size: 0.78rem; padding: 0.45rem 0.9rem; border-radius: 8px; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 0.4rem; }
+  .topbar-btn:hover { color: var(--text); }
+  .topbar-btn.primary { background: var(--accent); color: #0A0A0A; border-color: var(--accent); font-weight: 500; }
+  .topbar-btn.primary:hover { opacity: 0.9; }
+
+  .content { flex: 1; overflow-y: auto; padding: 1.5rem 1.75rem; }
+
+  /* VIEWS */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* METRICS */
+  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+  .metric-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; padding: 1.1rem 1.25rem; }
+  .metric-label { font-size: 0.72rem; color: var(--muted); letter-spacing: 0.03em; margin-bottom: 0.5rem; text-transform: uppercase; font-weight: 500; }
+  .metric-value { font-family: var(--font-head); font-size: 1.8rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1; margin-bottom: 0.4rem; }
+  .metric-delta { font-size: 0.72rem; color: var(--muted); }
+
+  /* CARDS */
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem; margin-bottom: 1rem; }
+  .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.1rem; }
+  .card-title { font-family: var(--font-head); font-size: 0.88rem; font-weight: 700; }
+
+  /* BADGES */
+  .badge { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.68rem; font-weight: 500; padding: 0.2rem 0.6rem; border-radius: 100px; white-space: nowrap; }
+  .badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+  .badge-green { background: var(--green-dim); color: var(--green); }
+  .badge-amber { background: var(--amber-dim); color: var(--amber); }
+  .badge-blue { background: var(--blue-dim); color: var(--blue); }
+  .badge-red { background: var(--red-dim); color: var(--red); }
+  .badge-muted { background: rgba(255,255,255,0.06); color: var(--muted2); }
+  .badge-orange { background: var(--accent2-dim); color: var(--accent2); }
+
+  /* TABLE */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th { font-size: 0.68rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 0 0.75rem 0.75rem; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  td { padding: 0.8rem 0.75rem; border-bottom: 1px solid var(--border); font-size: 0.82rem; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  /* ORDER CARDS */
+  .order-cards { display: flex; flex-direction: column; gap: 0.75rem; }
+  .order-card { background: var(--bg2); border: 1px solid var(--border2); border-radius: 14px; padding: 1.25rem; transition: border-color 0.2s; }
+  .order-card:hover { border-color: rgba(255,255,255,0.18); }
+  .order-card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 0.9rem; }
+  .order-card-title { font-family: var(--font-head); font-size: 0.95rem; font-weight: 700; margin-bottom: 0.2rem; }
+  .order-card-meta { font-size: 0.75rem; color: var(--muted); }
+  .order-card-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 0.9rem; border-top: 1px solid var(--border); margin-top: 0.9rem; }
+  .order-stats { display: flex; gap: 1.5rem; }
+  .order-stat strong { display: block; font-family: var(--font-head); font-size: 0.95rem; font-weight: 700; }
+  .order-stat span { font-size: 0.72rem; color: var(--muted); }
+
+  /* PROGRESS STEPS */
+  .progress-steps { display: flex; gap: 0; margin-bottom: 0.9rem; }
+  .prog-step-item { flex: 1; text-align: center; position: relative; }
+  .prog-step-item::before { content: ''; position: absolute; top: 12px; left: -50%; width: 100%; height: 2px; background: var(--border2); z-index: 0; }
+  .prog-step-item:first-child::before { display: none; }
+  .prog-circle { width: 24px; height: 24px; border-radius: 50%; background: var(--bg3); border: 2px solid var(--border2); display: flex; align-items: center; justify-content: center; margin: 0 auto 0.4rem; position: relative; z-index: 1; font-size: 0.6rem; font-weight: 700; }
+  .prog-step-item.done .prog-circle { background: var(--green); border-color: var(--green); color: #000; }
+  .prog-step-item.done::before { background: var(--green); }
+  .prog-step-item.active .prog-circle { background: var(--accent); border-color: var(--accent); color: #000; }
+  .prog-step-label { font-size: 0.65rem; color: var(--muted); }
+  .prog-step-item.done .prog-step-label, .prog-step-item.active .prog-step-label { color: var(--text); }
+
+  /* ACTION BTNS */
+  .tbl-btn { background: none; border: 1px solid var(--border2); border-radius: 6px; color: var(--muted2); font-family: var(--font-body); font-size: 0.72rem; padding: 0.25rem 0.6rem; cursor: pointer; transition: all 0.15s; }
+  .tbl-btn:hover { color: var(--text); }
+  .tbl-btn.approve { border-color: rgba(74,222,128,0.3); color: var(--green); }
+  .tbl-btn.approve:hover { background: var(--green-dim); }
+  .tbl-btn.revision { border-color: rgba(251,191,36,0.3); color: var(--amber); }
+  .tbl-btn.revision:hover { background: var(--amber-dim); }
+  .tbl-btn.danger { border-color: rgba(255,92,92,0.3); color: var(--red); }
+  .tbl-btn.danger:hover { background: var(--red-dim); }
+  .btn-group { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+
+  /* VIDEO REVIEW */
+  .review-card { background: var(--bg2); border: 1px solid var(--border2); border-radius: 14px; overflow: hidden; margin-bottom: 0.75rem; }
+  .video-placeholder { background: var(--bg3); height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.2s; }
+  .video-placeholder:hover { background: var(--bg4); }
+  .video-placeholder .play-btn { width: 48px; height: 48px; background: rgba(232,255,71,0.15); border: 2px solid rgba(232,255,71,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+  .video-placeholder p { font-size: 0.78rem; color: var(--muted); }
+  .review-body { padding: 1rem 1.25rem; }
+  .review-title { font-family: var(--font-head); font-size: 0.9rem; font-weight: 700; margin-bottom: 0.2rem; }
+  .review-meta { font-size: 0.72rem; color: var(--muted); margin-bottom: 1rem; }
+  .review-actions { display: flex; gap: 0.6rem; align-items: center; }
+  .btn-approve { background: var(--green); color: #000; font-family: var(--font-body); font-weight: 600; font-size: 0.8rem; padding: 0.55rem 1.1rem; border-radius: 100px; border: none; cursor: pointer; transition: opacity 0.2s; display: flex; align-items: center; gap: 0.4rem; }
+  .btn-approve:hover { opacity: 0.88; }
+  .btn-revision { background: none; border: 1px solid rgba(251,191,36,0.35); color: var(--amber); font-family: var(--font-body); font-size: 0.8rem; padding: 0.55rem 1.1rem; border-radius: 100px; cursor: pointer; transition: background 0.2s; }
+  .btn-revision:hover { background: var(--amber-dim); }
+  .revision-box { display: none; margin-top: 0.85rem; }
+  .revision-box textarea { width: 100%; background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px; color: var(--text); font-family: var(--font-body); font-size: 0.82rem; padding: 0.6rem 0.85rem; outline: none; resize: vertical; min-height: 70px; transition: border-color 0.2s; }
+  .revision-box textarea:focus { border-color: var(--amber); }
+  .revision-box button { margin-top: 0.5rem; background: var(--amber); color: #000; font-family: var(--font-body); font-weight: 600; font-size: 0.78rem; padding: 0.5rem 1rem; border-radius: 100px; border: none; cursor: pointer; }
+
+  /* BILLING */
+  .plan-card { background: var(--bg2); border: 1px solid var(--border2); border-radius: 16px; padding: 1.5rem; margin-bottom: 1rem; }
+  .plan-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.25rem; }
+  .plan-name { font-family: var(--font-head); font-size: 1.1rem; font-weight: 800; }
+  .plan-price { font-family: var(--font-head); font-size: 1.8rem; font-weight: 800; color: var(--accent); }
+  .plan-price span { font-size: 0.9rem; color: var(--muted); font-family: var(--font-body); font-weight: 400; }
+  .plan-features { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.25rem; }
+  .plan-features li { font-size: 0.82rem; color: var(--muted2); display: flex; align-items: center; gap: 0.5rem; }
+  .plan-features li::before { content: '✓'; color: var(--accent); font-size: 0.75rem; flex-shrink: 0; }
+  .plan-upgrade-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1.25rem; }
+  .upgrade-opt { background: var(--bg3); border: 1px solid var(--border2); border-radius: 12px; padding: 1rem; cursor: pointer; transition: all 0.2s; }
+  .upgrade-opt:hover { border-color: rgba(232,255,71,0.3); background: var(--accent-dim); }
+  .upgrade-opt strong { display: block; font-family: var(--font-head); font-size: 0.95rem; font-weight: 700; margin-bottom: 0.2rem; }
+  .upgrade-opt .up-price { font-family: var(--font-head); font-size: 1.3rem; font-weight: 800; color: var(--accent); }
+  .upgrade-opt span { font-size: 0.72rem; color: var(--muted); }
+
+  /* ADS LIBRARY */
+  .ads-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  .ad-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: border-color 0.2s; }
+  .ad-card:hover { border-color: var(--border2); }
+  .ad-thumb { background: var(--bg3); height: 140px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.4rem; cursor: pointer; position: relative; }
+  .ad-thumb .play { font-size: 1.5rem; opacity: 0.6; }
+  .ad-thumb .duration { position: absolute; bottom: 0.5rem; right: 0.5rem; background: rgba(0,0,0,0.6); font-size: 0.65rem; padding: 0.15rem 0.4rem; border-radius: 4px; color: var(--text); }
+  .ad-info { padding: 0.75rem; }
+  .ad-title { font-size: 0.8rem; font-weight: 500; margin-bottom: 0.2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ad-meta { font-size: 0.68rem; color: var(--muted); margin-bottom: 0.6rem; }
+  .ad-download { display: flex; align-items: center; justify-content: space-between; }
+  .download-btn { background: none; border: 1px solid var(--border2); border-radius: 6px; color: var(--muted2); font-family: var(--font-body); font-size: 0.7rem; padding: 0.25rem 0.6rem; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 0.3rem; }
+  .download-btn:hover { color: var(--accent); border-color: rgba(232,255,71,0.3); }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <a href="index.html" class="sidebar-logo">Clip<span>Drop</span></a>
+
+    <p class="sidebar-label">Orders</p>
+    <button class="nav-item active" onclick="switchView('orders', this)"><span class="icon">📦</span> My orders <span class="nav-badge" id="badge-review">1</span></button>
+    <button class="nav-item" onclick="switchView('review', this)"><span class="icon">🎬</span> Review videos <span class="nav-badge">1</span></button>
+    <button class="nav-item" onclick="switchView('library', this)"><span class="icon">🗂</span> Ads library</button>
+
+    <p class="sidebar-label">Account</p>
+    <button class="nav-item" onclick="switchView('billing', this)"><span class="icon">💳</span> Billing & plan</button>
+
+    <div class="sidebar-footer">
+      <div class="seller-pill">
+        <div class="seller-avatar" id="sidebar-avatar">??</div>
+        <div class="seller-info">
+          <strong id="sidebar-name">Loading...</strong>
+          <span id="sidebar-plan">Try plan</span>
+        </div>
+      </div>
+      <button class="logout-btn" onclick="logout()"><span>→</span> Sign out</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <h1 id="view-title">My Orders</h1>
+        <p id="view-sub">Track your active and past orders</p>
+      </div>
+      <div class="topbar-right">
+        <button class="topbar-btn">🔔</button>
+        <button class="topbar-btn primary" onclick="window.location.href='seller-order.html'">+ New order</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ══════════════════════════════════════ -->
+      <!-- ORDERS VIEW                            -->
+      <!-- ══════════════════════════════════════ -->
+      <div class="view active" id="view-orders">
+        <div class="metrics">
+          <div class="metric-card"><p class="metric-label">Total orders</p><p class="metric-value">8</p><p class="metric-delta">All time</p></div>
+          <div class="metric-card"><p class="metric-label">Active</p><p class="metric-value" style="color:var(--accent)">2</p><p class="metric-delta">In progress</p></div>
+          <div class="metric-card"><p class="metric-label">Awaiting review</p><p class="metric-value" style="color:var(--amber)">1</p><p class="metric-delta">Video ready to watch</p></div>
+          <div class="metric-card"><p class="metric-label">Total spent</p><p class="metric-value" style="color:var(--green)">$468</p><p class="metric-delta">Across all orders</p></div>
+        </div>
+
+        <div class="order-cards">
+
+          <!-- AWAITING REVIEW -->
+          <div class="order-card" style="border-color: rgba(251,191,36,0.3);">
+            <div class="order-card-top">
+              <div>
+                <p class="order-card-title">LED Desk Lamp with USB Charging</p>
+                <p class="order-card-meta">#CD-48199 · Placed Apr 21 · Creator: Tyler Webb</p>
+              </div>
+              <span class="badge badge-amber">Video ready — needs review</span>
+            </div>
+            <div class="progress-steps">
+              <div class="prog-step-item done"><div class="prog-circle">✓</div><p class="prog-step-label">Ordered</p></div>
+              <div class="prog-step-item done"><div class="prog-circle">✓</div><p class="prog-step-label">Shipped</p></div>
+              <div class="prog-step-item done"><div class="prog-circle">✓</div><p class="prog-step-label">Filmed</p></div>
+              <div class="prog-step-item active"><div class="prog-circle">→</div><p class="prog-step-label">Your review</p></div>
+              <div class="prog-step-item"><div class="prog-circle"></div><p class="prog-step-label">Done</p></div>
+            </div>
+            <div class="order-card-footer">
+              <div class="order-stats">
+                <div class="order-stat"><strong>$90</strong><span>Paid</span></div>
+                <div class="order-stat"><strong>60s</strong><span>Video</span></div>
+                <div class="order-stat"><strong>Tyler Webb</strong><span>Creator</span></div>
+              </div>
+              <div class="btn-group">
+                <button class="tbl-btn approve" onclick="switchView('review', document.querySelectorAll('.nav-item')[1])">Review video →</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- SHIPPING -->
+          <div class="order-card">
+            <div class="order-card-top">
+              <div>
+                <p class="order-card-title">Magnetic Phone Mount for Car</p>
+                <p class="order-card-meta">#CD-48195 · Placed Apr 20 · Creator: Auto-matched</p>
+              </div>
+              <span class="badge badge-orange">Product shipping to creator</span>
+            </div>
+            <div class="progress-steps">
+              <div class="prog-step-item done"><div class="prog-circle">✓</div><p class="prog-step-label">Ordered</p></div>
+              <div class="prog-step-item active"><div class="prog-circle">→</div><p class="prog-step-label">Shipped</p></div>
+              <div class="prog-step-item"><div class="prog-circle"></div><p class="prog-step-label">Filming</p></div>
+              <div class="prog-step-item"><div class="prog-circle"></div><p class="prog-step-label">Review</p></div>
+              <div class="prog-step-item"><div class="prog-circle"></div><p class="prog-step-label">Done</p></div>
+            </div>
+            <div class="order-card-footer">
+              <div class="order-stats">
+                <div class="order-stat"><strong>$39</strong><span>Paid</span></div>
+                <div class="order-stat"><strong>30s</strong><span>Video</span></div>
+                <div class="order-stat"><strong>Auto</strong><span>Creator</span></div>
+              </div>
+              <div class="btn-group">
+                <button class="tbl-btn">Track shipment</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- COMPLETED -->
+          <div class="order-card" style="opacity:0.7;">
+            <div class="order-card-top">
+              <div>
+                <p class="order-card-title">Silk Pillowcase Set</p>
+                <p class="order-card-meta">#CD-48180 · Placed Apr 17 · Creator: Priya Shah</p>
+              </div>
+              <span class="badge badge-green">Completed</span>
+            </div>
+            <div class="progress-steps">
+              <div class="prog-step-item done"><div class="prog-circle">✓</div><p class="prog-step-label">Ordered</p></div>
+              <div class="prog-step-item done"><div class="prog-circle">✓</div><p class="prog-step-label">Shipped</p></div>
+              <div class="prog-step-item done"><div class="prog-circle">✓</div><p class="prog-step-label">Filmed</p></div>
+              <div class="prog-step-item done"><div class="prog-circle">✓</div><p class="prog-step-label">Review</p></div>
+              <div class="prog-step-item done"><div class="prog-circle">✓</div><p class="prog-step-label">Done</p></div>
+            </div>
+            <div class="order-card-footer">
+              <div class="order-stats">
+                <div class="order-stat"><strong>$60</strong><span>Paid</span></div>
+                <div class="order-stat"><strong>30s</strong><span>Video</span></div>
+                <div class="order-stat"><strong>Priya Shah</strong><span>Creator</span></div>
+              </div>
+              <div class="btn-group">
+                <button class="tbl-btn" onclick="switchView('library', document.querySelectorAll('.nav-item')[2])">View in library</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════ -->
+      <!-- REVIEW VIEW                            -->
+      <!-- ══════════════════════════════════════ -->
+      <div class="view" id="view-review">
+        <p style="font-size:0.82rem;color:var(--muted);margin-bottom:1.25rem;">Videos submitted by creators that need your approval. You get one free revision per order.</p>
+
+        <div class="review-card">
+          <div class="video-placeholder" onclick="this.innerHTML='<p style=\'color:var(--muted);font-size:0.82rem\'>▶ Video would play here in production</p>'">
+            <div class="play-btn">▶</div>
+            <p>Click to preview — LED Desk Lamp ad</p>
+            <div class="duration">0:58</div>
+          </div>
+          <div class="review-body">
+            <p class="review-title">LED Desk Lamp with USB Charging</p>
+            <p class="review-meta">#CD-48199 · Submitted by Tyler Webb · Apr 23 · 60s review-style</p>
+            <div class="review-actions">
+              <button class="btn-approve" onclick="approveVideo(this)">✓ Approve & release payment</button>
+              <button class="btn-revision" onclick="toggleRevision(this)">Request revision</button>
+              <span style="font-size:0.72rem;color:var(--muted);margin-left:0.5rem;">1 free revision remaining</span>
+            </div>
+            <div class="revision-box" id="revision-box-1">
+              <textarea placeholder="Describe what needs to change — e.g. 'Please show the USB-C port more clearly and re-record the intro hook.'"></textarea>
+              <button onclick="submitRevision(this)">Send revision request →</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.25rem;display:flex;gap:1rem;align-items:flex-start;">
+          <span style="font-size:1.1rem;flex-shrink:0">ℹ</span>
+          <div>
+            <p style="font-size:0.82rem;font-weight:500;margin-bottom:0.2rem;">How approvals work</p>
+            <p style="font-size:0.78rem;color:var(--muted);line-height:1.6;">When you approve a video, the creator gets paid within 24 hours and the video is added to your ads library for download. If you request a revision, the creator has 5 days to resubmit. Each order includes one free revision.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════ -->
+      <!-- ADS LIBRARY VIEW                       -->
+      <!-- ══════════════════════════════════════ -->
+      <div class="view" id="view-library">
+        <div class="metrics" style="grid-template-columns:repeat(3,1fr)">
+          <div class="metric-card"><p class="metric-label">Total ads</p><p class="metric-value">5</p><p class="metric-delta">Ready to run</p></div>
+          <div class="metric-card"><p class="metric-label">TikTok format</p><p class="metric-value">3</p><p class="metric-delta">9:16 vertical</p></div>
+          <div class="metric-card"><p class="metric-label">Instagram format</p><p class="metric-value">2</p><p class="metric-delta">Reels ready</p></div>
+        </div>
+
+        <div class="ads-grid">
+          <div class="ad-card">
+            <div class="ad-thumb">
+              <div class="play">▶</div>
+              <p style="font-size:0.65rem;color:var(--muted)">Silk Pillowcase</p>
+              <div class="duration">0:32</div>
+            </div>
+            <div class="ad-info">
+              <p class="ad-title">Silk Pillowcase Set — Unboxing</p>
+              <p class="ad-meta">Priya Shah · Apr 18 · TikTok</p>
+              <div class="ad-download">
+                <span class="badge badge-green" style="font-size:0.62rem">Approved</span>
+                <button class="download-btn">⬇ Download</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="ad-card">
+            <div class="ad-thumb">
+              <div class="play">▶</div>
+              <p style="font-size:0.65rem;color:var(--muted)">Resistance Bands</p>
+              <div class="duration">0:29</div>
+            </div>
+            <div class="ad-info">
+              <p class="ad-title">Resistance Band Set — Review</p>
+              <p class="ad-meta">Maya Rivera · Apr 15 · Instagram</p>
+              <div class="ad-download">
+                <span class="badge badge-green" style="font-size:0.62rem">Approved</span>
+                <button class="download-btn">⬇ Download</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="ad-card">
+            <div class="ad-thumb">
+              <div class="play">▶</div>
+              <p style="font-size:0.65rem;color:var(--muted)">Bamboo Board</p>
+              <div class="duration">0:31</div>
+            </div>
+            <div class="ad-info">
+              <p class="ad-title">Bamboo Cutting Board — Lifestyle</p>
+              <p class="ad-meta">Priya Shah · Apr 11 · TikTok</p>
+              <div class="ad-download">
+                <span class="badge badge-green" style="font-size:0.62rem">Approved</span>
+                <button class="download-btn">⬇ Download</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="ad-card">
+            <div class="ad-thumb">
+              <div class="play">▶</div>
+              <p style="font-size:0.65rem;color:var(--muted)">Foam Roller</p>
+              <div class="duration">0:28</div>
+            </div>
+            <div class="ad-info">
+              <p class="ad-title">Foam Roller — Tutorial</p>
+              <p class="ad-meta">Tyler Webb · Apr 7 · TikTok</p>
+              <div class="ad-download">
+                <span class="badge badge-green" style="font-size:0.62rem">Approved</span>
+                <button class="download-btn">⬇ Download</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="ad-card">
+            <div class="ad-thumb">
+              <div class="play">▶</div>
+              <p style="font-size:0.65rem;color:var(--muted)">Phone Stand</p>
+              <div class="duration">0:45</div>
+            </div>
+            <div class="ad-info">
+              <p class="ad-title">Phone Stand — Unboxing</p>
+              <p class="ad-meta">Jake Kowalski · Apr 2 · Instagram</p>
+              <div class="ad-download">
+                <span class="badge badge-green" style="font-size:0.62rem">Approved</span>
+                <button class="download-btn">⬇ Download</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════ -->
+      <!-- BILLING VIEW                           -->
+      <!-- ══════════════════════════════════════ -->
+      <div class="view" id="view-billing">
+        <div class="plan-card" style="border-color:rgba(232,255,71,0.2);">
+          <div class="plan-header">
+            <div>
+              <p class="plan-name">Try plan</p>
+              <p style="font-size:0.78rem;color:var(--muted);margin-top:0.2rem">Your current plan</p>
+            </div>
+            <div style="text-align:right">
+              <p class="plan-price">$39 <span>flat</span></p>
+              <p style="font-size:0.72rem;color:var(--muted)">per video, no commitment</p>
+            </div>
+          </div>
+          <ul class="plan-features">
+            <li>1 creator video per order</li>
+            <li>TikTok or Reels format</li>
+            <li>Product shipped by us</li>
+            <li>One free revision</li>
+            <li>7-day delivery</li>
+          </ul>
+          <p style="font-size:0.78rem;color:var(--muted);margin-bottom:1rem;">Ready to scale? Upgrade to a monthly plan and pay less per video.</p>
+
+          <div class="plan-upgrade-grid">
+            <div class="upgrade-opt" onclick="selectPlan(this, 'growth')">
+              <strong>Growth</strong>
+              <p class="up-price">$149<span style="font-size:0.75rem;color:var(--muted);font-family:var(--font-body);font-weight:400">/mo</span></p>
+              <span>5 videos/month · $29.80 each</span>
+            </div>
+            <div class="upgrade-opt" onclick="selectPlan(this, 'scale')">
+              <strong>Scale</strong>
+              <p class="up-price">$399<span style="font-size:0.75rem;color:var(--muted);font-family:var(--font-body);font-weight:400">/mo</span></p>
+              <span>15 videos/month · $26.60 each</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><p class="card-title">Billing history</p></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Date</th><th>Description</th><th>Amount</th><th>Status</th><th>Invoice</th></tr></thead>
+              <tbody>
+                <tr><td style="color:var(--muted)">Apr 21</td><td>LED Desk Lamp — Try plan</td><td style="font-family:var(--font-head);font-weight:600">$90</td><td><span class="badge badge-green">Paid</span></td><td><button class="tbl-btn">Download</button></td></tr>
+                <tr><td style="color:var(--muted)">Apr 20</td><td>Magnetic Phone Mount — Try plan</td><td style="font-family:var(--font-head);font-weight:600">$39</td><td><span class="badge badge-green">Paid</span></td><td><button class="tbl-btn">Download</button></td></tr>
+                <tr><td style="color:var(--muted)">Apr 17</td><td>Silk Pillowcase Set — Try plan</td><td style="font-family:var(--font-head);font-weight:600">$60</td><td><span class="badge badge-green">Paid</span></td><td><button class="tbl-btn">Download</button></td></tr>
+                <tr><td style="color:var(--muted)">Apr 14</td><td>Resistance Band Set — Try plan</td><td style="font-family:var(--font-head);font-weight:600">$75</td><td><span class="badge badge-green">Paid</span></td><td><button class="tbl-btn">Download</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── Auth check ─────────────────────────────────────────────────
+  const token = localStorage.getItem('clipdrop_token');
+  const userRaw = localStorage.getItem('clipdrop_user');
+
+  if (!token || !userRaw) {
+    window.location.href = '/login.html';
+  } else {
+    const user = JSON.parse(userRaw);
+    if (user.role !== 'seller') window.location.href = '/login.html';
+    const initials = ((user.first_name?.[0] || '') + (user.last_name?.[0] || '')).toUpperCase() || '??';
+    document.getElementById('sidebar-avatar').textContent = initials;
+    document.getElementById('sidebar-name').textContent = (user.first_name + ' ' + user.last_name).trim() || 'Seller';
+  }
+
+  // ── Navigation ─────────────────────────────────────────────────
+  const viewMeta = {
+    orders:  { title: 'My Orders',       sub: 'Track your active and past orders' },
+    review:  { title: 'Review Videos',   sub: 'Approve or request revisions on submitted ads' },
+    library: { title: 'Ads Library',     sub: 'Download your approved video ads' },
+    billing: { title: 'Billing & Plan',  sub: 'Manage your plan and view invoices' },
+  };
+
+  function switchView(id, btn) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('view-' + id).classList.add('active');
+    if (btn) btn.classList.add('active');
+    document.getElementById('view-title').textContent = viewMeta[id].title;
+    document.getElementById('view-sub').textContent = viewMeta[id].sub;
+  }
+
+  // ── Video review ───────────────────────────────────────────────
+  function approveVideo(btn) {
+    btn.textContent = '✓ Approved!';
+    btn.style.background = 'var(--green-dim)';
+    btn.style.color = 'var(--green)';
+    btn.disabled = true;
+    btn.nextElementSibling.style.display = 'none';
+    document.getElementById('badge-review').style.display = 'none';
+    setTimeout(() => {
+      alert('Payment released to creator. Video added to your ads library!');
+      switchView('library', document.querySelectorAll('.nav-item')[2]);
+    }, 800);
+  }
+
+  function toggleRevision(btn) {
+    const box = document.getElementById('revision-box-1');
+    box.style.display = box.style.display === 'block' ? 'none' : 'block';
+    btn.textContent = box.style.display === 'block' ? 'Cancel' : 'Request revision';
+  }
+
+  function submitRevision(btn) {
+    const textarea = btn.previousElementSibling;
+    if (!textarea.value.trim()) { textarea.style.borderColor = 'var(--red)'; return; }
+    btn.textContent = 'Sent!';
+    btn.disabled = true;
+    textarea.disabled = true;
+    setTimeout(() => alert('Revision request sent to Tyler Webb. They have 5 days to resubmit.'), 400);
+  }
+
+  // ── Plan upgrade ───────────────────────────────────────────────
+  function selectPlan(el, plan) {
+    const names = { growth: 'Growth ($149/mo)', scale: 'Scale ($399/mo)' };
+    if (confirm(`Upgrade to the ${names[plan]} plan? You'll be redirected to complete payment.`)) {
+      alert('In production this would open a Stripe checkout session for the ' + names[plan] + ' plan.');
+    }
+  }
+
+  // ── Logout ─────────────────────────────────────────────────────
+  function logout() {
+    localStorage.removeItem('clipdrop_token');
+    localStorage.removeItem('clipdrop_user');
+    window.location.href = '/login.html';
+  }
+</script>
+</body>
+</html>

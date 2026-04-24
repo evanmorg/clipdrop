@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ClipDrop — Place an Order</title>
+<script src="https://js.stripe.com/v3/"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0A0A0A;
+    --bg2: #111111;
+    --bg3: #181818;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #F0EDE8;
+    --muted: rgba(240,237,232,0.5);
+    --accent: #E8FF47;
+    --accent2: #FF6B35;
+    --accent-dim: rgba(232,255,71,0.1);
+    --accent2-dim: rgba(255,107,53,0.1);
+    --error: #FF5C5C;
+    --font-head: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+  }
+
+  html, body { min-height: 100vh; background: var(--bg); color: var(--text); font-family: var(--font-body); font-size: 16px; line-height: 1.6; }
+
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.25rem 2.5rem;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,10,10,0.9); backdrop-filter: blur(16px);
+  }
+  .logo { font-family: var(--font-head); font-size: 1.3rem; font-weight: 800; letter-spacing: -0.02em; color: var(--text); text-decoration: none; }
+  .logo span { color: var(--accent); }
+  .nav-right { display: flex; align-items: center; gap: 1.5rem; }
+  .nav-right a { font-size: 0.85rem; color: var(--muted); text-decoration: none; }
+  .nav-right a:hover { color: var(--text); }
+
+  .page { display: grid; grid-template-columns: 1fr 420px; min-height: calc(100vh - 65px); align-items: start; }
+
+  /* MAIN FORM */
+  .form-area { padding: 3rem 3rem 3rem 3.5rem; max-width: 680px; }
+
+  /* PROGRESS */
+  .progress-bar { height: 2px; background: var(--border); border-radius: 2px; margin-bottom: 2.5rem; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.4s ease; }
+
+  .step-tabs {
+    display: flex; gap: 0; margin-bottom: 2.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .step-tab {
+    padding: 0.6rem 1.25rem 0.75rem;
+    font-size: 0.82rem; font-weight: 500;
+    color: var(--muted); cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: all 0.2s;
+    background: none; border-left: none; border-right: none; border-top: none;
+    font-family: var(--font-body);
+    white-space: nowrap;
+  }
+  .step-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .step-tab.done { color: var(--text); }
+  .step-tab.locked { cursor: default; }
+
+  .step-header { margin-bottom: 2rem; }
+  .step-counter { font-size: 0.75rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.4rem; }
+  .step-header h2 { font-family: var(--font-head); font-size: 1.75rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; margin-bottom: 0.35rem; }
+  .step-header p { font-size: 0.9rem; color: var(--muted); }
+
+  .form-step { display: none; }
+  .form-step.active { display: block; }
+
+  /* FIELDS */
+  .field { margin-bottom: 1.25rem; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  label { display: block; font-size: 0.82rem; font-weight: 500; color: var(--muted); margin-bottom: 0.4rem; letter-spacing: 0.01em; }
+  .label-opt { color: var(--muted); font-weight: 300; }
+
+  input[type="text"], input[type="url"], input[type="email"], select, textarea {
+    width: 100%; background: var(--bg2); border: 1px solid var(--border2);
+    border-radius: 10px; color: var(--text); font-family: var(--font-body);
+    font-size: 0.95rem; padding: 0.75rem 1rem; outline: none;
+    transition: border-color 0.2s; appearance: none;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+  input::placeholder, textarea::placeholder { color: var(--muted); }
+  textarea { resize: vertical; }
+
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(240,237,232,0.4)' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 1rem center;
+    padding-right: 2.5rem; cursor: pointer;
+  }
+
+  .input-prefix { display: flex; align-items: center; background: var(--bg2); border: 1px solid var(--border2); border-radius: 10px; overflow: hidden; transition: border-color 0.2s; }
+  .input-prefix:focus-within { border-color: var(--accent); }
+  .input-prefix span { padding: 0.75rem 0.75rem 0.75rem 1rem; font-size: 0.85rem; color: var(--muted); background: var(--bg3); border-right: 1px solid var(--border); white-space: nowrap; }
+  .input-prefix input { border: none; border-radius: 0; background: transparent; flex: 1; }
+  .input-prefix input:focus { border-color: transparent; }
+
+  .char-count { font-size: 0.75rem; color: var(--muted); text-align: right; margin-top: 0.3rem; }
+
+  /* CHIPS */
+  .chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.25rem; }
+  .chip {
+    padding: 0.4rem 0.9rem; border-radius: 100px;
+    border: 1px solid var(--border2); background: none;
+    color: var(--muted); font-family: var(--font-body); font-size: 0.82rem;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .chip:hover { color: var(--text); background: var(--bg3); }
+  .chip.selected { background: var(--accent-dim); border-color: rgba(232,255,71,0.3); color: var(--accent); }
+
+  /* VIDEO LENGTH TOGGLE */
+  .length-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.6rem; }
+  .length-opt {
+    background: var(--bg2); border: 1px solid var(--border2);
+    border-radius: 10px; padding: 0.85rem 0.5rem;
+    text-align: center; cursor: pointer;
+    transition: all 0.15s; font-family: var(--font-body);
+  }
+  .length-opt:hover { border-color: var(--border2); background: var(--bg3); }
+  .length-opt.selected { background: var(--accent-dim); border-color: rgba(232,255,71,0.3); }
+  .length-opt strong { display: block; font-size: 1rem; font-weight: 700; font-family: var(--font-head); color: var(--text); }
+  .length-opt.selected strong { color: var(--accent); }
+  .length-opt span { font-size: 0.72rem; color: var(--muted); }
+
+  /* REFERENCE LINKS */
+  .ref-link-row { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.6rem; }
+  .ref-link-row input { flex: 1; margin: 0; }
+  .remove-link { width: 34px; height: 34px; flex-shrink: 0; background: none; border: 1px solid var(--border); border-radius: 8px; color: var(--muted); font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .remove-link:hover { border-color: var(--error); color: var(--error); }
+  .add-link { background: none; border: 1px dashed var(--border2); border-radius: 10px; color: var(--muted); font-family: var(--font-body); font-size: 0.85rem; padding: 0.6rem 1rem; cursor: pointer; width: 100%; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.4rem; }
+  .add-link:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+  /* CREATOR MATCH TOGGLE */
+  .match-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1.5rem; }
+  .match-opt {
+    background: var(--bg2); border: 1px solid var(--border2);
+    border-radius: 12px; padding: 1.25rem;
+    cursor: pointer; transition: all 0.2s; text-align: left;
+  }
+  .match-opt:hover { border-color: var(--border2); background: var(--bg3); }
+  .match-opt.selected { border-color: rgba(232,255,71,0.4); background: var(--accent-dim); }
+  .match-opt-icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
+  .match-opt strong { display: block; font-size: 0.9rem; font-weight: 600; font-family: var(--font-head); margin-bottom: 0.2rem; }
+  .match-opt.selected strong { color: var(--accent); }
+  .match-opt span { font-size: 0.78rem; color: var(--muted); line-height: 1.4; }
+
+  /* CREATOR CARDS */
+  .creator-grid { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.5rem; }
+  .creator-card {
+    background: var(--bg2); border: 1px solid var(--border2);
+    border-radius: 14px; padding: 1rem 1.25rem;
+    display: flex; align-items: center; gap: 1rem;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .creator-card:hover { border-color: var(--border2); background: var(--bg3); }
+  .creator-card.selected { border-color: rgba(232,255,71,0.4); background: var(--accent-dim); }
+  .creator-avatar {
+    width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.9rem; font-family: var(--font-head);
+  }
+  .creator-info { flex: 1; }
+  .creator-info strong { display: block; font-size: 0.9rem; font-weight: 600; }
+  .creator-info span { font-size: 0.78rem; color: var(--muted); }
+  .creator-meta { text-align: right; flex-shrink: 0; }
+  .creator-meta strong { display: block; font-size: 0.95rem; font-weight: 700; font-family: var(--font-head); color: var(--accent); }
+  .creator-meta span { font-size: 0.72rem; color: var(--muted); }
+  .creator-niches { display: flex; gap: 0.35rem; flex-wrap: wrap; margin-top: 0.3rem; }
+  .niche-pill { font-size: 0.68rem; padding: 0.15rem 0.5rem; border-radius: 100px; background: var(--bg3); border: 1px solid var(--border); color: var(--muted); }
+
+  /* FORM ACTIONS */
+  .form-actions { display: flex; align-items: center; justify-content: space-between; margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+  .btn-back { background: none; border: none; color: var(--muted); font-family: var(--font-body); font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 0.4rem; padding: 0; transition: color 0.2s; }
+  .btn-back:hover { color: var(--text); }
+  .btn-next { background: var(--accent); color: #0A0A0A; font-family: var(--font-body); font-weight: 500; font-size: 0.95rem; padding: 0.8rem 2rem; border-radius: 100px; border: none; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: transform 0.15s, box-shadow 0.2s; }
+  .btn-next:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(232,255,71,0.2); }
+
+  .field-error { font-size: 0.78rem; color: var(--error); margin-top: 0.3rem; display: none; }
+  input.has-error, select.has-error, textarea.has-error { border-color: var(--error) !important; }
+
+  /* ORDER SUMMARY SIDEBAR */
+  .sidebar {
+    padding: 3rem 2.5rem 3rem 1.5rem;
+    position: sticky; top: 65px;
+  }
+  .summary-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 20px; padding: 1.75rem; overflow: hidden;
+  }
+  .summary-title { font-family: var(--font-head); font-size: 0.85rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 1.5rem; }
+
+  .summary-line { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; gap: 1rem; }
+  .summary-line .key { font-size: 0.82rem; color: var(--muted); flex-shrink: 0; }
+  .summary-line .val { font-size: 0.85rem; color: var(--text); text-align: right; word-break: break-word; max-width: 180px; }
+  .summary-line .val.empty { color: var(--border2); font-style: italic; }
+
+  .summary-divider { height: 1px; background: var(--border); margin: 1.25rem 0; }
+
+  .plan-badge {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--accent-dim); border: 1px solid rgba(232,255,71,0.2);
+    border-radius: 10px; padding: 0.75rem 1rem; margin-bottom: 1.5rem;
+  }
+  .plan-badge span { font-size: 0.82rem; color: var(--accent); font-weight: 500; }
+  .plan-badge strong { font-family: var(--font-head); font-size: 1.1rem; color: var(--accent); }
+
+  .trust-items { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 1.5rem; }
+  .trust-item { display: flex; align-items: center; gap: 0.6rem; font-size: 0.78rem; color: var(--muted); }
+  .trust-item::before { content: '✓'; color: var(--accent); font-size: 0.72rem; flex-shrink: 0; }
+
+  /* SUCCESS */
+  .success-screen { display: none; flex-direction: column; align-items: center; text-align: center; padding: 4rem 2rem; }
+  .success-icon { width: 80px; height: 80px; background: var(--accent-dim); border: 1px solid rgba(232,255,71,0.25); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin: 0 auto 2rem; }
+  .success-screen h2 { font-family: var(--font-head); font-size: 2rem; font-weight: 800; margin-bottom: 0.75rem; }
+  .success-screen p { color: var(--muted); max-width: 400px; margin: 0 auto 0.75rem; font-size: 0.95rem; line-height: 1.65; }
+  .order-ref { display: inline-block; background: var(--bg2); border: 1px solid var(--border2); border-radius: 8px; padding: 0.5rem 1.25rem; font-family: var(--font-head); font-size: 0.9rem; color: var(--accent); letter-spacing: 0.06em; margin: 1rem 0 2rem; }
+  .btn-primary { display: inline-flex; align-items: center; gap: 0.5rem; background: var(--accent); color: #0A0A0A; font-family: var(--font-body); font-weight: 500; font-size: 0.95rem; padding: 0.85rem 2rem; border-radius: 100px; text-decoration: none; transition: opacity 0.2s; border: none; cursor: pointer; }
+  .btn-primary:hover { opacity: 0.88; }
+
+  @media (max-width: 900px) {
+    .page { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .form-area { padding: 2rem 1.5rem; max-width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">Clip<span>Drop</span></a>
+  <div class="nav-right">
+    <a href="#">My orders</a>
+    <a href="#" style="background: var(--accent); color: #0A0A0A; padding: 0.5rem 1.1rem; border-radius: 100px; font-weight: 500; font-size: 0.82rem;">Account</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- MAIN FORM -->
+  <div class="form-area">
+
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill" style="width: 25%"></div>
+    </div>
+
+    <div class="step-tabs">
+      <button class="step-tab active" id="tab-1">1. Product</button>
+      <button class="step-tab locked" id="tab-2">2. Brief</button>
+      <button class="step-tab locked" id="tab-3">3. Creator</button>
+      <button class="step-tab locked" id="tab-4">4. Shipping</button>
+    </div>
+
+    <!-- STEP 1: Product -->
+    <div class="form-step active" id="step-1">
+      <div class="step-header">
+        <p class="step-counter">Step 1 of 4</p>
+        <h2>Tell us about your product</h2>
+        <p>The more detail you give, the better your creator can represent it.</p>
+      </div>
+
+      <div class="field">
+        <label>Product name</label>
+        <input type="text" id="product-name" placeholder="e.g. Magnetic Phone Mount for Car" oninput="updateSummary()" />
+        <p class="field-error" id="err-product-name">Please enter your product name</p>
+      </div>
+
+      <div class="field">
+        <label>Supplier / product URL</label>
+        <input type="url" id="product-url" placeholder="https://aliexpress.com/item/..." oninput="updateSummary()" />
+        <p class="field-error" id="err-product-url">Please enter a valid URL</p>
+      </div>
+
+      <div class="field">
+        <label>Product description</label>
+        <textarea id="product-desc" rows="4" maxlength="500" placeholder="What does it do? What problem does it solve? What makes it special?" oninput="updateCharCount(this, 'desc-count', 500); updateSummary()"></textarea>
+        <p class="char-count"><span id="desc-count">0</span>/500</p>
+        <p class="field-error" id="err-product-desc">Please describe your product</p>
+      </div>
+
+      <div class="field">
+        <label>Product category</label>
+        <select id="product-category" onchange="updateSummary()">
+          <option value="">Select a category</option>
+          <option>Fashion & Clothing</option>
+          <option>Beauty & Skincare</option>
+          <option>Fitness & Health</option>
+          <option>Home & Living</option>
+          <option>Tech & Gadgets</option>
+          <option>Pets</option>
+          <option>Kitchen & Cooking</option>
+          <option>Wellness</option>
+          <option>Baby & Kids</option>
+          <option>Outdoor & Sports</option>
+          <option>Automotive</option>
+          <option>Other</option>
+        </select>
+        <p class="field-error" id="err-product-category">Please select a category</p>
+      </div>
+
+      <div class="form-actions">
+        <span></span>
+        <button class="btn-next" onclick="nextStep(1)">Continue →</button>
+      </div>
+    </div>
+
+    <!-- STEP 2: Brief -->
+    <div class="form-step" id="step-2">
+      <div class="step-header">
+        <p class="step-counter">Step 2 of 4</p>
+        <h2>Create your brief</h2>
+        <p>This goes directly to your creator. Be specific — better briefs get better ads.</p>
+      </div>
+
+      <div class="field">
+        <label>Target audience</label>
+        <input type="text" id="target-audience" placeholder="e.g. Women 25–40 who commute daily and drive to work" oninput="updateSummary()" />
+        <p class="field-error" id="err-target-audience">Please describe your target audience</p>
+      </div>
+
+      <div class="field">
+        <label>Ad style</label>
+        <div class="chips" id="ad-styles">
+          <button class="chip" onclick="selectChip(this, 'style')">📦 Unboxing</button>
+          <button class="chip" onclick="selectChip(this, 'style')">⭐ Honest review</button>
+          <button class="chip" onclick="selectChip(this, 'style')">🎬 Tutorial / how-to</button>
+          <button class="chip" onclick="selectChip(this, 'style')">✨ Lifestyle</button>
+          <button class="chip" onclick="selectChip(this, 'style')">🔄 Before & after</button>
+          <button class="chip" onclick="selectChip(this, 'style')">😂 Skit / comedy</button>
+          <button class="chip" onclick="selectChip(this, 'style')">🗣️ Talking head</button>
+        </div>
+        <p class="field-error" id="err-ad-style">Please select an ad style</p>
+      </div>
+
+      <div class="field">
+        <label>Video length</label>
+        <div class="length-options">
+          <div class="length-opt" onclick="selectLength(this, '15s')"><strong>15s</strong><span>Short hook</span></div>
+          <div class="length-opt selected" onclick="selectLength(this, '30s')"><strong>30s</strong><span>Most popular</span></div>
+          <div class="length-opt" onclick="selectLength(this, '60s')"><strong>60s</strong><span>Full review</span></div>
+          <div class="length-opt" onclick="selectLength(this, '90s')"><strong>90s</strong><span>Deep dive</span></div>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top: 1.25rem;">
+        <label>Reference ads <span class="label-opt">(optional — TikTok or Instagram links you like)</span></label>
+        <div id="ref-links">
+          <div class="ref-link-row">
+            <input type="url" placeholder="https://tiktok.com/@creator/video/..." />
+            <button class="remove-link" onclick="removeRefLink(this)">×</button>
+          </div>
+        </div>
+        <button class="add-link" onclick="addRefLink()">+ Add reference link</button>
+      </div>
+
+      <div class="field">
+        <label>Special instructions for the creator <span class="label-opt">(optional)</span></label>
+        <textarea id="special-instructions" rows="3" maxlength="400" placeholder="e.g. Please emphasise the magnetic strength. Don't mention price. Film in natural lighting." oninput="updateCharCount(this, 'inst-count', 400)"></textarea>
+        <p class="char-count"><span id="inst-count">0</span>/400</p>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-back" onclick="prevStep(2)">← Back</button>
+        <button class="btn-next" onclick="nextStep(2)">Continue →</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: Creator -->
+    <div class="form-step" id="step-3">
+      <div class="step-header">
+        <p class="step-counter">Step 3 of 4</p>
+        <h2>Choose a creator</h2>
+        <p>Let us match you automatically, or browse and pick your own.</p>
+      </div>
+
+      <div class="match-toggle">
+        <div class="match-opt selected" id="match-auto" onclick="selectMatchType('auto')">
+          <div class="match-opt-icon">⚡</div>
+          <strong>Auto-match</strong>
+          <span>We pick the best creator for your niche. Fastest option.</span>
+        </div>
+        <div class="match-opt" id="match-browse" onclick="selectMatchType('browse')">
+          <div class="match-opt-icon">🔍</div>
+          <strong>Browse creators</strong>
+          <span>Pick someone whose style you like.</span>
+        </div>
+      </div>
+
+      <!-- AUTO MATCH INFO -->
+      <div id="auto-match-info">
+        <div style="background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; display: flex; gap: 1rem; align-items: flex-start;">
+          <div style="width: 40px; height: 40px; background: var(--accent-dim); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.1rem;">⚡</div>
+          <div>
+            <p style="font-size: 0.9rem; font-weight: 500; margin-bottom: 0.3rem;">We'll handle the matching</p>
+            <p style="font-size: 0.83rem; color: var(--muted); line-height: 1.6;">Based on your product category and brief, we'll match you with a creator who specialises in that niche, has a strong track record, and can deliver within your timeframe. You'll be notified once matched — usually within a few hours.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- BROWSE CREATORS -->
+      <div id="browse-creators" style="display: none;">
+        <p style="font-size: 0.8rem; color: var(--muted); margin-bottom: 1rem;">Showing creators matched to your product category</p>
+        <div class="creator-grid">
+
+          <div class="creator-card" onclick="selectCreator(this, 'maya')">
+            <div class="creator-avatar" style="background: rgba(232,255,71,0.12); color: var(--accent);">MR</div>
+            <div class="creator-info">
+              <strong>Maya Rivera</strong>
+              <span>@mayavibes · 84K TikTok</span>
+              <div class="creator-niches">
+                <span class="niche-pill">Beauty</span>
+                <span class="niche-pill">Lifestyle</span>
+                <span class="niche-pill">Wellness</span>
+              </div>
+            </div>
+            <div class="creator-meta">
+              <strong>$75</strong>
+              <span>per video</span>
+              <p style="font-size: 0.7rem; color: var(--muted); margin-top: 0.3rem;">5 day delivery</p>
+            </div>
+          </div>
+
+          <div class="creator-card" onclick="selectCreator(this, 'jake')">
+            <div class="creator-avatar" style="background: rgba(255,107,53,0.12); color: var(--accent2);">JK</div>
+            <div class="creator-info">
+              <strong>Jake Kowalski</strong>
+              <span>@jaketek · 210K TikTok</span>
+              <div class="creator-niches">
+                <span class="niche-pill">Tech</span>
+                <span class="niche-pill">Gadgets</span>
+                <span class="niche-pill">Automotive</span>
+              </div>
+            </div>
+            <div class="creator-meta">
+              <strong>$120</strong>
+              <span>per video</span>
+              <p style="font-size: 0.7rem; color: var(--muted); margin-top: 0.3rem;">7 day delivery</p>
+            </div>
+          </div>
+
+          <div class="creator-card" onclick="selectCreator(this, 'priya')">
+            <div class="creator-avatar" style="background: rgba(100,180,255,0.12); color: #64B4FF;">PS</div>
+            <div class="creator-info">
+              <strong>Priya Shah</strong>
+              <span>@priyaathome · 56K Instagram</span>
+              <div class="creator-niches">
+                <span class="niche-pill">Home</span>
+                <span class="niche-pill">Kitchen</span>
+                <span class="niche-pill">Lifestyle</span>
+              </div>
+            </div>
+            <div class="creator-meta">
+              <strong>$60</strong>
+              <span>per video</span>
+              <p style="font-size: 0.7rem; color: var(--muted); margin-top: 0.3rem;">5 day delivery</p>
+            </div>
+          </div>
+
+          <div class="creator-card" onclick="selectCreator(this, 'tyler')">
+            <div class="creator-avatar" style="background: rgba(180,255,100,0.1); color: #9BDB4D;">TW</div>
+            <div class="creator-info">
+              <strong>Tyler Webb</strong>
+              <span>@tylerfits · 142K TikTok</span>
+              <div class="creator-niches">
+                <span class="niche-pill">Fitness</span>
+                <span class="niche-pill">Health</span>
+                <span class="niche-pill">Outdoor</span>
+              </div>
+            </div>
+            <div class="creator-meta">
+              <strong>$90</strong>
+              <span>per video</span>
+              <p style="font-size: 0.7rem; color: var(--muted); margin-top: 0.3rem;">6 day delivery</p>
+            </div>
+          </div>
+
+        </div>
+        <p class="field-error" id="err-creator">Please select a creator</p>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-back" onclick="prevStep(3)">← Back</button>
+        <button class="btn-next" onclick="nextStep(3)">Continue →</button>
+      </div>
+    </div>
+
+    <!-- STEP 4: Shipping -->
+    <div class="form-step" id="step-4">
+      <div class="step-header">
+        <p class="step-counter">Step 4 of 4</p>
+        <h2>Shipping & payment</h2>
+        <p>We'll order the product from your supplier and ship it directly to the creator.</p>
+      </div>
+
+      <div style="background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.75rem; display: flex; gap: 0.75rem; align-items: flex-start;">
+        <span style="font-size: 1rem; flex-shrink:0; margin-top:1px;">📦</span>
+        <p style="font-size: 0.83rem; color: var(--muted); line-height: 1.6;">We handle the entire shipping process. Just give us the supplier link (already provided) and confirm the product details below so we can place the order on your behalf.</p>
+      </div>
+
+      <div class="field">
+        <label>Product variant / options</label>
+        <input type="text" id="product-variant" placeholder="e.g. Black, Universal fit — or 'no variants'" />
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Quantity to send</label>
+          <select id="quantity">
+            <option>1 unit</option>
+            <option>2 units</option>
+            <option>3 units</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Preferred shipping speed</label>
+          <select id="shipping-speed">
+            <option>Standard (7–14 days)</option>
+            <option>Express (3–5 days)</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="height: 1px; background: var(--border); margin: 1.75rem 0;"></div>
+
+      <p style="font-family: var(--font-head); font-size: 0.85rem; font-weight: 700; letter-spacing: 0.04em; color: var(--muted); margin-bottom: 1.25rem; text-transform: uppercase;">Billing details</p>
+
+      <div class="field">
+        <label>Cardholder name</label>
+        <input type="text" id="card-name" placeholder="Alex Johnson" />
+        <p class="field-error" id="err-card-name">Please enter the cardholder name</p>
+      </div>
+
+      <div class="field">
+        <label>Card details</label>
+        <div id="stripe-card-element" style="background: #ffffff; border: 1px solid var(--border2); border-radius: 10px; padding: 0.85rem 1rem;"></div>
+        <p class="field-error" id="err-stripe">Please enter your card details</p>
+      </div>
+
+      <div style="background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 0.9rem 1.1rem; display: flex; align-items: center; gap: 0.75rem; margin-top: 0.5rem;">
+        <span style="font-size: 0.9rem;">🔒</span>
+        <p style="font-size: 0.78rem; color: var(--muted);">Payments processed securely via Stripe. Your card details never touch our servers.</p>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-back" onclick="prevStep(4)">← Back</button>
+        <button class="btn-next" onclick="submitOrder()" style="background: var(--accent2); box-shadow: none; padding: 0.85rem 2.25rem;">
+          Place order →
+        </button>
+      </div>
+    </div>
+
+    <!-- SUCCESS -->
+    <div class="success-screen" id="success-screen">
+      <div class="success-icon">🚀</div>
+      <h2>Order placed!</h2>
+      <p>Your product is being ordered and will be shipped to your creator shortly. You'll get an email when they start filming.</p>
+      <div class="order-ref" id="order-ref">ORDER #CD-00000</div>
+      <p style="font-size: 0.82rem; color: var(--muted); margin-bottom: 2rem;">Estimated ad delivery: <strong style="color: var(--text);">7 business days</strong></p>
+      <button class="btn-primary" onclick="window.location.href='index.html'">Back to dashboard →</button>
+    </div>
+
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="summary-card">
+      <p class="summary-title">Order summary</p>
+
+      <div class="plan-badge">
+        <span>Try plan</span>
+        <strong>$39</strong>
+      </div>
+
+      <div class="summary-line">
+        <span class="key">Product</span>
+        <span class="val empty" id="sum-product">Not set</span>
+      </div>
+      <div class="summary-line">
+        <span class="key">Category</span>
+        <span class="val empty" id="sum-category">Not set</span>
+      </div>
+      <div class="summary-line">
+        <span class="key">Ad style</span>
+        <span class="val empty" id="sum-style">Not set</span>
+      </div>
+      <div class="summary-line">
+        <span class="key">Length</span>
+        <span class="val" id="sum-length">30 seconds</span>
+      </div>
+      <div class="summary-line">
+        <span class="key">Creator</span>
+        <span class="val empty" id="sum-creator">Auto-matched</span>
+      </div>
+      <div class="summary-line">
+        <span class="key">Delivery</span>
+        <span class="val" id="sum-delivery">~7 days</span>
+      </div>
+
+      <div class="summary-divider"></div>
+
+      <div class="summary-line" style="margin-bottom: 0.5rem;">
+        <span class="key">Video</span>
+        <span class="val">$39.00</span>
+      </div>
+      <div class="summary-line" style="margin-bottom: 0.5rem;">
+        <span class="key">Shipping</span>
+        <span class="val">Included</span>
+      </div>
+      <div class="summary-line" style="margin-bottom: 0;">
+        <span class="key" style="font-weight: 600; color: var(--text); font-size: 0.9rem;">Total</span>
+        <span class="val" style="font-family: var(--font-head); font-size: 1.1rem; font-weight: 700; color: var(--accent);">$39.00</span>
+      </div>
+
+      <div class="trust-items">
+        <div class="trust-item">One free revision included</div>
+        <div class="trust-item">Pay only on approval</div>
+        <div class="trust-item">7-day delivery guarantee</div>
+        <div class="trust-item">Product shipped on your behalf</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let currentStep = 1;
+  let selectedStyle = null;
+  let selectedLength = '30s';
+  let matchType = 'auto';
+  let selectedCreatorName = null;
+
+  function updateProgress(step) {
+    document.getElementById('progress-fill').style.width = (step / 4 * 100) + '%';
+    for (let i = 1; i <= 4; i++) {
+      const tab = document.getElementById('tab-' + i);
+      tab.classList.remove('active', 'done', 'locked');
+      if (i === step) tab.classList.add('active');
+      else if (i < step) tab.classList.add('done');
+      else tab.classList.add('locked');
+    }
+  }
+
+  function showStep(step) {
+    document.querySelectorAll('.form-step').forEach(el => el.classList.remove('active'));
+    const el = document.getElementById('step-' + step);
+    if (el) el.classList.add('active');
+    updateProgress(step);
+    currentStep = step;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function showError(errId, inputId) {
+    const e = document.getElementById(errId);
+    if (e) e.style.display = 'block';
+    if (inputId) { const i = document.getElementById(inputId); if (i) i.classList.add('has-error'); }
+  }
+
+  function clearErrors(...ids) {
+    ids.forEach(id => {
+      const e = document.getElementById(id);
+      if (e) e.style.display = 'none';
+    });
+  }
+
+  function validateStep(step) {
+    let valid = true;
+    if (step === 1) {
+      clearErrors('err-product-name','err-product-url','err-product-desc','err-product-category');
+      ['product-name','product-url','product-desc','product-category'].forEach(id => document.getElementById(id).classList.remove('has-error'));
+      if (!document.getElementById('product-name').value.trim()) { showError('err-product-name','product-name'); valid = false; }
+      const url = document.getElementById('product-url').value.trim();
+      if (!url || !url.startsWith('http')) { showError('err-product-url','product-url'); valid = false; }
+      if (!document.getElementById('product-desc').value.trim()) { showError('err-product-desc','product-desc'); valid = false; }
+      if (!document.getElementById('product-category').value) { showError('err-product-category','product-category'); valid = false; }
+    }
+    if (step === 2) {
+      clearErrors('err-target-audience','err-ad-style');
+      document.getElementById('target-audience').classList.remove('has-error');
+      if (!document.getElementById('target-audience').value.trim()) { showError('err-target-audience','target-audience'); valid = false; }
+      if (!selectedStyle) { showError('err-ad-style'); valid = false; }
+    }
+    if (step === 3) {
+      clearErrors('err-creator');
+      if (matchType === 'browse' && !selectedCreatorName) { showError('err-creator'); valid = false; }
+    }
+    if (step === 4) {
+      clearErrors('err-card-name', 'err-stripe');
+      document.getElementById('card-name').classList.remove('has-error');
+      if (!document.getElementById('card-name').value.trim()) {
+        showError('err-card-name', 'card-name'); valid = false;
+      }
+      if (!stripeCardComplete) {
+        showError('err-stripe'); valid = false;
+      }
+    }
+    return valid;
+  }
+
+  function nextStep(step) {
+    if (!validateStep(step)) return;
+    if (step < 4) showStep(step + 1);
+  }
+
+  function prevStep(step) {
+    if (step > 1) showStep(step - 1);
+  }
+
+  function selectChip(btn, group) {
+    document.querySelectorAll('#ad-styles .chip').forEach(c => c.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedStyle = btn.textContent.trim();
+    document.getElementById('sum-style').textContent = selectedStyle;
+    document.getElementById('sum-style').classList.remove('empty');
+    clearErrors('err-ad-style');
+  }
+
+  function selectLength(el, val) {
+    document.querySelectorAll('.length-opt').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedLength = val;
+    document.getElementById('sum-length').textContent = val;
+  }
+
+  function selectMatchType(type) {
+    matchType = type;
+    document.getElementById('match-auto').classList.toggle('selected', type === 'auto');
+    document.getElementById('match-browse').classList.toggle('selected', type === 'browse');
+    document.getElementById('auto-match-info').style.display = type === 'auto' ? 'block' : 'none';
+    document.getElementById('browse-creators').style.display = type === 'browse' ? 'block' : 'none';
+    if (type === 'auto') {
+      document.getElementById('sum-creator').textContent = 'Auto-matched';
+      document.getElementById('sum-creator').classList.add('empty');
+      document.getElementById('sum-delivery').textContent = '~7 days';
+    }
+  }
+
+  function selectCreator(card, key) {
+    document.querySelectorAll('.creator-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    const name = card.querySelector('strong').textContent;
+    const delivery = card.querySelector('.creator-meta p').textContent;
+    selectedCreatorName = name;
+    document.getElementById('sum-creator').textContent = name;
+    document.getElementById('sum-creator').classList.remove('empty');
+    document.getElementById('sum-delivery').textContent = delivery;
+    clearErrors('err-creator');
+  }
+
+  function addRefLink() {
+    const container = document.getElementById('ref-links');
+    const row = document.createElement('div');
+    row.className = 'ref-link-row';
+    row.innerHTML = `<input type="url" placeholder="https://tiktok.com/@creator/video/..." /><button class="remove-link" onclick="removeRefLink(this)">×</button>`;
+    container.appendChild(row);
+  }
+
+  function removeRefLink(btn) {
+    const rows = document.querySelectorAll('.ref-link-row');
+    if (rows.length > 1) btn.closest('.ref-link-row').remove();
+  }
+
+  function updateCharCount(el, countId, max) {
+    document.getElementById(countId).textContent = el.value.length;
+  }
+
+  function updateSummary() {
+    const name = document.getElementById('product-name').value.trim();
+    const cat = document.getElementById('product-category').value;
+    const sumProd = document.getElementById('sum-product');
+    const sumCat = document.getElementById('sum-category');
+    if (name) { sumProd.textContent = name.length > 28 ? name.slice(0,28)+'…' : name; sumProd.classList.remove('empty'); }
+    else { sumProd.textContent = 'Not set'; sumProd.classList.add('empty'); }
+    if (cat) { sumCat.textContent = cat; sumCat.classList.remove('empty'); }
+    else { sumCat.textContent = 'Not set'; sumCat.classList.add('empty'); }
+  }
+
+  function formatCard(input) {
+    let v = input.value.replace(/\D/g,'').slice(0,16);
+    input.value = v.replace(/(.{4})/g,'$1 ').trim();
+  }
+
+  function formatExpiry(input) {
+    let v = input.value.replace(/\D/g,'').slice(0,4);
+    if (v.length >= 2) v = v.slice(0,2) + ' / ' + v.slice(2);
+    input.value = v;
+  }
+
+  // ── Stripe setup ────────────────────────────────────────────────
+  let stripeCardComplete = false;
+  let stripeCardElement = null;
+  let stripeInstance = null;
+
+  async function initStripe() {
+    const res = await fetch('/api/stripe-key');
+    const { publishableKey } = await res.json();
+    stripeInstance = Stripe(publishableKey);
+    const elements = stripeInstance.elements();
+    stripeCardElement = elements.create('card', { hidePostalCode: true });
+    stripeCardElement.mount('#stripe-card-element');
+    stripeCardElement.on('change', e => {
+      stripeCardComplete = e.complete;
+      if (e.error) {
+        document.getElementById('err-stripe').textContent = e.error.message;
+        document.getElementById('err-stripe').style.display = 'block';
+      } else {
+        document.getElementById('err-stripe').style.display = 'none';
+      }
+    });
+  }
+
+  // Init Stripe when page loads
+  initStripe();
+
+  // ── Submit order ─────────────────────────────────────────────────
+  async function submitOrder() {
+    if (!validateStep(4)) return;
+
+    const btn = document.querySelector('#step-4 .btn-next');
+    btn.disabled = true;
+    btn.textContent = 'Processing...';
+
+    const token = localStorage.getItem('clipdrop_token');
+    if (!token) {
+      alert('You need to be logged in to place an order. Redirecting to login...');
+      window.location.href = '/login.html';
+      return;
+    }
+
+    const amount = 39; // Try plan
+
+    try {
+      // Step 1 — create payment intent on server
+      const intentRes = await fetch('/api/orders/payment-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ amount })
+      });
+      const { clientSecret, id: paymentIntentId, error: intentError } = await intentRes.json();
+      if (intentError) throw new Error(intentError);
+
+      // Step 2 — confirm payment with Stripe
+      const { paymentIntent, error: stripeError } = await stripeInstance.confirmCardPayment(clientSecret, {
+        payment_method: {
+          card: stripeCardElement,
+          billing_details: { name: document.getElementById('card-name').value.trim() }
+        }
+      });
+      if (stripeError) throw new Error(stripeError.message);
+      if (paymentIntent.status !== 'succeeded') throw new Error('Payment did not succeed');
+
+      // Step 3 — save order to database
+      const refLinks = Array.from(document.querySelectorAll('#ref-links input[type="url"]'))
+        .map(i => i.value.trim()).filter(Boolean);
+
+      const orderRes = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({
+          product_name:           document.getElementById('product-name').value.trim(),
+          product_url:            document.getElementById('product-url').value.trim(),
+          product_desc:           document.getElementById('product-desc').value.trim(),
+          product_category:       document.getElementById('product-category').value,
+          target_audience:        document.getElementById('target-audience').value.trim(),
+          ad_style:               selectedStyle,
+          video_length:           selectedLength,
+          reference_links:        refLinks,
+          special_instructions:   document.getElementById('special-instructions').value.trim(),
+          product_variant:        document.getElementById('product-variant').value.trim(),
+          quantity:               parseInt(document.getElementById('quantity').value),
+          shipping_speed:         document.getElementById('shipping-speed').value,
+          match_type:             matchType,
+          amount,
+          stripe_payment_intent_id: paymentIntentId
+        })
+      });
+
+      const orderData = await orderRes.json();
+      if (!orderRes.ok) throw new Error(orderData.error);
+
+      // Step 4 — show success
+      document.querySelectorAll('.form-step').forEach(el => el.classList.remove('active'));
+      document.getElementById('progress-fill').style.width = '100%';
+      for (let i = 1; i <= 4; i++) {
+        const t = document.getElementById('tab-' + i);
+        t.classList.remove('active','locked');
+        t.classList.add('done');
+      }
+      document.getElementById('order-ref').textContent = 'ORDER #' + orderData.reference;
+      document.getElementById('success-screen').style.display = 'flex';
+
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = 'Place order →';
+      alert('Error: ' + err.message);
+    }
+  }
+</script>
+</body>
+</html>

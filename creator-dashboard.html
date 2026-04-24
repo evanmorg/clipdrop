@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ClipDrop — Creator Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0A0A0A; --bg2: #111111; --bg3: #181818; --bg4: #1E1E1E;
+    --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.12);
+    --text: #F0EDE8; --muted: rgba(240,237,232,0.45); --muted2: rgba(240,237,232,0.65);
+    --accent: #E8FF47; --accent2: #FF6B35;
+    --accent-dim: rgba(232,255,71,0.08); --accent2-dim: rgba(255,107,53,0.1);
+    --green: #4ADE80; --green-dim: rgba(74,222,128,0.1);
+    --red: #FF5C5C; --red-dim: rgba(255,92,92,0.1);
+    --blue: #60A5FA; --blue-dim: rgba(96,165,250,0.1);
+    --amber: #FBBF24; --amber-dim: rgba(251,191,36,0.1);
+    --sidebar-w: 220px;
+    --font-head: 'Syne', sans-serif; --font-body: 'DM Sans', sans-serif;
+  }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font-body); font-size: 14px; line-height: 1.5; overflow: hidden; }
+
+  /* LAYOUT */
+  .app { display: grid; grid-template-columns: var(--sidebar-w) 1fr; height: 100vh; }
+
+  /* SIDEBAR */
+  .sidebar { background: var(--bg2); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; }
+  .sidebar-logo { padding: 1.5rem 1.25rem 1.25rem; border-bottom: 1px solid var(--border); font-family: var(--font-head); font-size: 1.2rem; font-weight: 800; letter-spacing: -0.02em; text-decoration: none; color: var(--text); display: block; }
+  .sidebar-logo span { color: var(--accent); }
+  .sidebar-label { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding: 1.25rem 1.25rem 0.4rem; }
+  .nav-item { display: flex; align-items: center; gap: 0.65rem; padding: 0.6rem 1.25rem; cursor: pointer; color: var(--muted2); font-size: 0.85rem; font-weight: 400; border-left: 2px solid transparent; transition: all 0.15s; user-select: none; background: none; border-top: none; border-right: none; border-bottom: none; width: 100%; text-align: left; font-family: var(--font-body); }
+  .nav-item:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+  .nav-item.active { color: var(--accent); border-left-color: var(--accent); background: var(--accent-dim); font-weight: 500; }
+  .nav-item .icon { width: 16px; text-align: center; font-size: 0.9rem; flex-shrink: 0; }
+  .nav-badge { margin-left: auto; background: var(--accent2); color: #fff; font-size: 0.65rem; font-weight: 600; padding: 0.1rem 0.45rem; border-radius: 100px; }
+
+  .sidebar-footer { margin-top: auto; padding: 1rem 1.25rem; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 0.75rem; }
+  .creator-pill { display: flex; align-items: center; gap: 0.6rem; }
+  .creator-avatar { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,107,53,0.12); border: 1px solid rgba(255,107,53,0.25); display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; color: var(--accent2); flex-shrink: 0; }
+  .creator-info strong { display: block; font-size: 0.82rem; font-weight: 500; }
+  .creator-info span { font-size: 0.7rem; color: var(--muted); }
+  .logout-btn { display: flex; align-items: center; gap: 0.5rem; background: none; border: 1px solid var(--border2); border-radius: 8px; color: var(--muted); font-family: var(--font-body); font-size: 0.78rem; padding: 0.5rem 0.75rem; cursor: pointer; width: 100%; transition: all 0.2s; }
+  .logout-btn:hover { color: var(--red); border-color: rgba(255,92,92,0.3); background: var(--red-dim); }
+
+  /* MAIN */
+  .main { display: flex; flex-direction: column; overflow: hidden; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 0.9rem 1.75rem; border-bottom: 1px solid var(--border); background: var(--bg); flex-shrink: 0; }
+  .topbar-left h1 { font-family: var(--font-head); font-size: 1.1rem; font-weight: 700; }
+  .topbar-left p { font-size: 0.78rem; color: var(--muted); margin-top: 0.1rem; }
+  .topbar-right { display: flex; align-items: center; gap: 0.75rem; }
+  .topbar-btn { background: var(--bg2); border: 1px solid var(--border2); color: var(--muted2); font-family: var(--font-body); font-size: 0.78rem; padding: 0.45rem 0.9rem; border-radius: 8px; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 0.4rem; }
+  .topbar-btn:hover { color: var(--text); }
+  .topbar-btn.primary { background: var(--accent2); color: #fff; border-color: var(--accent2); font-weight: 500; }
+  .topbar-btn.primary:hover { opacity: 0.9; }
+
+  .content { flex: 1; overflow-y: auto; padding: 1.5rem 1.75rem; }
+
+  /* VIEWS */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* METRIC CARDS */
+  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+  .metric-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; padding: 1.1rem 1.25rem; }
+  .metric-label { font-size: 0.72rem; color: var(--muted); letter-spacing: 0.03em; margin-bottom: 0.5rem; text-transform: uppercase; font-weight: 500; }
+  .metric-value { font-family: var(--font-head); font-size: 1.8rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1; margin-bottom: 0.4rem; }
+  .metric-delta { font-size: 0.72rem; color: var(--muted); }
+
+  /* CARDS */
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem; margin-bottom: 1rem; }
+  .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.1rem; }
+  .card-title { font-family: var(--font-head); font-size: 0.88rem; font-weight: 700; }
+  .card-action { font-size: 0.72rem; color: var(--muted); cursor: pointer; background: none; border: none; font-family: var(--font-body); transition: color 0.15s; }
+  .card-action:hover { color: var(--accent); }
+
+  /* BADGES */
+  .badge { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.68rem; font-weight: 500; padding: 0.2rem 0.6rem; border-radius: 100px; white-space: nowrap; }
+  .badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+  .badge-green { background: var(--green-dim); color: var(--green); }
+  .badge-amber { background: var(--amber-dim); color: var(--amber); }
+  .badge-blue { background: var(--blue-dim); color: var(--blue); }
+  .badge-red { background: var(--red-dim); color: var(--red); }
+  .badge-muted { background: rgba(255,255,255,0.06); color: var(--muted2); }
+  .badge-orange { background: var(--accent2-dim); color: var(--accent2); }
+
+  /* TABLE */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th { font-size: 0.68rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 0 0.75rem 0.75rem; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  td { padding: 0.8rem 0.75rem; border-bottom: 1px solid var(--border); font-size: 0.82rem; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  /* ORDER CARDS */
+  .order-cards { display: flex; flex-direction: column; gap: 0.75rem; }
+  .order-card { background: var(--bg2); border: 1px solid var(--border2); border-radius: 14px; padding: 1.25rem; transition: border-color 0.2s; }
+  .order-card:hover { border-color: rgba(255,255,255,0.2); }
+  .order-card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 0.9rem; }
+  .order-card-title { font-family: var(--font-head); font-size: 0.95rem; font-weight: 700; margin-bottom: 0.2rem; }
+  .order-card-meta { font-size: 0.75rem; color: var(--muted); }
+  .order-card-body { font-size: 0.82rem; color: var(--muted2); line-height: 1.6; margin-bottom: 1rem; }
+  .order-card-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 0.9rem; border-top: 1px solid var(--border); }
+  .order-card-stats { display: flex; gap: 1.5rem; }
+  .order-stat { font-size: 0.75rem; }
+  .order-stat strong { display: block; font-family: var(--font-head); font-size: 0.95rem; font-weight: 700; }
+  .order-stat span { color: var(--muted); }
+
+  /* BRIEF MODAL */
+  .brief-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; align-items: center; justify-content: center; }
+  .brief-overlay.open { display: flex; }
+  .brief-modal { background: var(--bg2); border: 1px solid var(--border2); border-radius: 20px; padding: 2rem; max-width: 520px; width: 90%; max-height: 80vh; overflow-y: auto; }
+  .brief-modal h3 { font-family: var(--font-head); font-size: 1.2rem; font-weight: 800; margin-bottom: 0.3rem; }
+  .brief-modal .brief-sub { font-size: 0.8rem; color: var(--muted); margin-bottom: 1.5rem; }
+  .brief-section { margin-bottom: 1.25rem; }
+  .brief-label { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.35rem; }
+  .brief-value { font-size: 0.88rem; color: var(--text); line-height: 1.6; }
+  .brief-tag { display: inline-block; background: var(--bg3); border: 1px solid var(--border2); border-radius: 100px; padding: 0.2rem 0.7rem; font-size: 0.75rem; color: var(--muted2); margin: 0.15rem; }
+  .brief-close { background: none; border: 1px solid var(--border2); border-radius: 8px; color: var(--muted); font-family: var(--font-body); font-size: 0.8rem; padding: 0.5rem 1rem; cursor: pointer; margin-top: 1.25rem; transition: all 0.15s; }
+  .brief-close:hover { color: var(--text); border-color: var(--border2); }
+
+  /* ACTION BTNS */
+  .tbl-btn { background: none; border: 1px solid var(--border2); border-radius: 6px; color: var(--muted2); font-family: var(--font-body); font-size: 0.72rem; padding: 0.25rem 0.6rem; cursor: pointer; transition: all 0.15s; }
+  .tbl-btn:hover { color: var(--text); }
+  .tbl-btn.submit { border-color: rgba(232,255,71,0.3); color: var(--accent); }
+  .tbl-btn.submit:hover { background: var(--accent-dim); }
+  .btn-group { display: flex; gap: 0.35rem; }
+
+  /* PROGRESS STEPS */
+  .progress-steps { display: flex; gap: 0; margin-bottom: 1rem; }
+  .prog-step-item { flex: 1; text-align: center; position: relative; }
+  .prog-step-item::before { content: ''; position: absolute; top: 12px; left: -50%; width: 100%; height: 2px; background: var(--border2); z-index: 0; }
+  .prog-step-item:first-child::before { display: none; }
+  .prog-circle { width: 24px; height: 24px; border-radius: 50%; background: var(--bg3); border: 2px solid var(--border2); display: flex; align-items: center; justify-content: center; margin: 0 auto 0.4rem; position: relative; z-index: 1; font-size: 0.6rem; font-weight: 700; }
+  .prog-step-item.done .prog-circle { background: var(--green); border-color: var(--green); color: #000; }
+  .prog-step-item.done::before { background: var(--green); }
+  .prog-step-item.active .prog-circle { background: var(--accent); border-color: var(--accent); color: #000; }
+  .prog-step-label { font-size: 0.65rem; color: var(--muted); }
+  .prog-step-item.done .prog-step-label, .prog-step-item.active .prog-step-label { color: var(--text); }
+
+  /* PROFILE FORM */
+  .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .field { margin-bottom: 1rem; }
+  label { display: block; font-size: 0.75rem; font-weight: 500; color: var(--muted); margin-bottom: 0.35rem; }
+  input[type="text"], input[type="email"], input[type="number"], select, textarea { width: 100%; background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px; color: var(--text); font-family: var(--font-body); font-size: 0.85rem; padding: 0.6rem 0.85rem; outline: none; transition: border-color 0.2s; appearance: none; }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+  input::placeholder, textarea::placeholder { color: var(--muted); }
+  textarea { resize: vertical; min-height: 80px; }
+  .rate-display { font-family: var(--font-head); font-size: 2rem; font-weight: 800; color: var(--accent); margin: 0.5rem 0 0.75rem; }
+  .rate-display span { font-size: 0.9rem; color: var(--muted); font-family: var(--font-body); font-weight: 400; }
+  input[type="range"] { width: 100%; -webkit-appearance: none; background: none; padding: 0; border: none; height: 4px; cursor: pointer; }
+  input[type="range"]:focus { border-color: transparent; }
+  input[type="range"]::-webkit-slider-runnable-track { height: 4px; background: var(--border2); border-radius: 2px; }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); margin-top: -7px; cursor: pointer; border: 2px solid var(--bg); }
+  .save-btn { background: var(--accent); color: #0A0A0A; font-family: var(--font-body); font-weight: 600; font-size: 0.85rem; padding: 0.65rem 1.5rem; border-radius: 100px; border: none; cursor: pointer; margin-top: 0.5rem; transition: opacity 0.2s; }
+  .save-btn:hover { opacity: 0.88; }
+
+  /* EMPTY STATE */
+  .empty-state { text-align: center; padding: 3rem 2rem; }
+  .empty-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+  .empty-state h3 { font-family: var(--font-head); font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; }
+  .empty-state p { font-size: 0.82rem; color: var(--muted); }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <a href="index.html" class="sidebar-logo">Clip<span>Drop</span></a>
+
+    <p class="sidebar-label">Work</p>
+    <button class="nav-item active" onclick="switchView('orders', this)"><span class="icon">📦</span> My orders <span class="nav-badge" id="badge-orders">2</span></button>
+    <button class="nav-item" onclick="switchView('submissions', this)"><span class="icon">🎬</span> Submissions</button>
+
+    <p class="sidebar-label">Money</p>
+    <button class="nav-item" onclick="switchView('earnings', this)"><span class="icon">💰</span> Earnings</button>
+
+    <p class="sidebar-label">Account</p>
+    <button class="nav-item" onclick="switchView('profile', this)"><span class="icon">👤</span> Profile & rate</button>
+
+    <div class="sidebar-footer">
+      <div class="creator-pill">
+        <div class="creator-avatar" id="sidebar-avatar">??</div>
+        <div class="creator-info">
+          <strong id="sidebar-name">Loading...</strong>
+          <span id="sidebar-email">—</span>
+        </div>
+      </div>
+      <button class="logout-btn" onclick="logout()">
+        <span>→</span> Sign out
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <h1 id="view-title">My Orders</h1>
+        <p id="view-sub">Products assigned to you that need filming</p>
+      </div>
+      <div class="topbar-right">
+        <button class="topbar-btn">🔔</button>
+        <button class="topbar-btn primary" onclick="switchView('profile', document.querySelector('.nav-item:nth-child(8)'))">Edit profile</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ══════════════════════════════════════ -->
+      <!-- ORDERS VIEW                            -->
+      <!-- ══════════════════════════════════════ -->
+      <div class="view active" id="view-orders">
+        <div class="metrics">
+          <div class="metric-card">
+            <p class="metric-label">Active orders</p>
+            <p class="metric-value" style="color:var(--accent2)">2</p>
+            <p class="metric-delta">Need your attention</p>
+          </div>
+          <div class="metric-card">
+            <p class="metric-label">Due this week</p>
+            <p class="metric-value" style="color:var(--amber)">1</p>
+            <p class="metric-delta">Deadline approaching</p>
+          </div>
+          <div class="metric-card">
+            <p class="metric-label">Completed</p>
+            <p class="metric-value" style="color:var(--green)">14</p>
+            <p class="metric-delta">All time</p>
+          </div>
+          <div class="metric-card">
+            <p class="metric-label">Approval rate</p>
+            <p class="metric-value">96%</p>
+            <p class="metric-delta">First submission</p>
+          </div>
+        </div>
+
+        <div class="order-cards" id="order-cards">
+
+          <!-- ORDER 1 -->
+          <div class="order-card">
+            <div class="order-card-top">
+              <div>
+                <p class="order-card-title">Magnetic Phone Mount for Car</p>
+                <p class="order-card-meta">#CD-48195 · Assigned Apr 20 · Due Apr 27</p>
+              </div>
+              <span class="badge badge-orange">Product shipping</span>
+            </div>
+
+            <div class="progress-steps">
+              <div class="prog-step-item done">
+                <div class="prog-circle">✓</div>
+                <p class="prog-step-label">Ordered</p>
+              </div>
+              <div class="prog-step-item active">
+                <div class="prog-circle">→</div>
+                <p class="prog-step-label">Shipping</p>
+              </div>
+              <div class="prog-step-item">
+                <div class="prog-circle"></div>
+                <p class="prog-step-label">Film</p>
+              </div>
+              <div class="prog-step-item">
+                <div class="prog-circle"></div>
+                <p class="prog-step-label">Submit</p>
+              </div>
+              <div class="prog-step-item">
+                <div class="prog-circle"></div>
+                <p class="prog-step-label">Approved</p>
+              </div>
+            </div>
+
+            <p class="order-card-body">A magnetic phone mount designed for car dashboards. Seller wants a lifestyle unboxing showing the ease of installation. Product is on its way to you — expected in 2–3 days.</p>
+
+            <div class="order-card-footer">
+              <div class="order-card-stats">
+                <div class="order-stat"><strong>$75</strong><span>Your payout</span></div>
+                <div class="order-stat"><strong>30s</strong><span>Video length</span></div>
+                <div class="order-stat"><strong>Apr 27</strong><span>Due date</span></div>
+              </div>
+              <div class="btn-group">
+                <button class="tbl-btn" onclick="openBrief('mount')">View brief</button>
+                <button class="tbl-btn submit">Submit video</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ORDER 2 -->
+          <div class="order-card">
+            <div class="order-card-top">
+              <div>
+                <p class="order-card-title">LED Desk Lamp with USB Charging</p>
+                <p class="order-card-meta">#CD-48199 · Assigned Apr 21 · Due Apr 28</p>
+              </div>
+              <span class="badge badge-amber">Awaiting your video</span>
+            </div>
+
+            <div class="progress-steps">
+              <div class="prog-step-item done">
+                <div class="prog-circle">✓</div>
+                <p class="prog-step-label">Ordered</p>
+              </div>
+              <div class="prog-step-item done">
+                <div class="prog-circle">✓</div>
+                <p class="prog-step-label">Shipping</p>
+              </div>
+              <div class="prog-step-item active">
+                <div class="prog-circle">→</div>
+                <p class="prog-step-label">Film</p>
+              </div>
+              <div class="prog-step-item">
+                <div class="prog-circle"></div>
+                <p class="prog-step-label">Submit</p>
+              </div>
+              <div class="prog-step-item">
+                <div class="prog-circle"></div>
+                <p class="prog-step-label">Approved</p>
+              </div>
+            </div>
+
+            <p class="order-card-body">A minimalist LED desk lamp with built-in USB-C charging port. Seller wants a review-style video emphasising the clean design and brightness levels. Product has been delivered — ready to film!</p>
+
+            <div class="order-card-footer">
+              <div class="order-card-stats">
+                <div class="order-stat"><strong>$90</strong><span>Your payout</span></div>
+                <div class="order-stat"><strong>60s</strong><span>Video length</span></div>
+                <div class="order-stat" style="color:var(--amber)"><strong>Apr 28</strong><span>Due date</span></div>
+              </div>
+              <div class="btn-group">
+                <button class="tbl-btn" onclick="openBrief('lamp')">View brief</button>
+                <button class="tbl-btn submit">Submit video</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════ -->
+      <!-- SUBMISSIONS VIEW                       -->
+      <!-- ══════════════════════════════════════ -->
+      <div class="view" id="view-submissions">
+        <div class="metrics">
+          <div class="metric-card"><p class="metric-label">Total submitted</p><p class="metric-value">16</p><p class="metric-delta">All time</p></div>
+          <div class="metric-card"><p class="metric-label">Approved</p><p class="metric-value" style="color:var(--green)">14</p><p class="metric-delta">87.5% approval rate</p></div>
+          <div class="metric-card"><p class="metric-label">Revision requested</p><p class="metric-value" style="color:var(--amber)">1</p><p class="metric-delta">Needs refilm</p></div>
+          <div class="metric-card"><p class="metric-label">Avg turnaround</p><p class="metric-value">4.8d</p><p class="metric-delta">From delivery to submit</p></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><p class="card-title">Submission history</p></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Order</th><th>Product</th><th>Submitted</th><th>Status</th><th>Payout</th><th>Actions</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td style="font-family:var(--font-head);font-size:0.78rem">#CD-48185</td>
+                  <td>Portable Blender</td>
+                  <td style="color:var(--muted)">Apr 18</td>
+                  <td><span class="badge badge-amber">Revision requested</span></td>
+                  <td style="color:var(--muted)">Pending</td>
+                  <td><div class="btn-group"><button class="tbl-btn">View feedback</button><button class="tbl-btn submit">Resubmit</button></div></td>
+                </tr>
+                <tr>
+                  <td style="font-family:var(--font-head);font-size:0.78rem">#CD-48180</td>
+                  <td>Silk Pillowcase Set</td>
+                  <td style="color:var(--muted)">Apr 17</td>
+                  <td><span class="badge badge-green">Approved</span></td>
+                  <td style="font-family:var(--font-head);font-weight:700;color:var(--accent)">$63</td>
+                  <td><div class="btn-group"><button class="tbl-btn">View</button></div></td>
+                </tr>
+                <tr>
+                  <td style="font-family:var(--font-head);font-size:0.78rem">#CD-48170</td>
+                  <td>Resistance Band Set</td>
+                  <td style="color:var(--muted)">Apr 14</td>
+                  <td><span class="badge badge-green">Approved</span></td>
+                  <td style="font-family:var(--font-head);font-weight:700;color:var(--accent)">$75</td>
+                  <td><div class="btn-group"><button class="tbl-btn">View</button></div></td>
+                </tr>
+                <tr>
+                  <td style="font-family:var(--font-head);font-size:0.78rem">#CD-48155</td>
+                  <td>Bamboo Cutting Board</td>
+                  <td style="color:var(--muted)">Apr 10</td>
+                  <td><span class="badge badge-green">Approved</span></td>
+                  <td style="font-family:var(--font-head);font-weight:700;color:var(--accent)">$60</td>
+                  <td><div class="btn-group"><button class="tbl-btn">View</button></div></td>
+                </tr>
+                <tr>
+                  <td style="font-family:var(--font-head);font-size:0.78rem">#CD-48140</td>
+                  <td>Foam Roller</td>
+                  <td style="color:var(--muted)">Apr 6</td>
+                  <td><span class="badge badge-green">Approved</span></td>
+                  <td style="font-family:var(--font-head);font-weight:700;color:var(--accent)">$75</td>
+                  <td><div class="btn-group"><button class="tbl-btn">View</button></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════ -->
+      <!-- EARNINGS VIEW                          -->
+      <!-- ══════════════════════════════════════ -->
+      <div class="view" id="view-earnings">
+        <div class="metrics">
+          <div class="metric-card"><p class="metric-label">Total earned</p><p class="metric-value" style="color:var(--accent)">$1,086</p><p class="metric-delta">All time</p></div>
+          <div class="metric-card"><p class="metric-label">This month</p><p class="metric-value" style="color:var(--green)">$273</p><p class="metric-delta">3 videos approved</p></div>
+          <div class="metric-card"><p class="metric-label">Pending payout</p><p class="metric-value" style="color:var(--amber)">$165</p><p class="metric-delta">2 videos awaiting approval</p></div>
+          <div class="metric-card"><p class="metric-label">Avg per video</p><p class="metric-value">$77</p><p class="metric-delta">Based on 14 approved</p></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><p class="card-title">Payout history</p></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Order</th><th>Product</th><th>Amount</th><th>Status</th><th>Date paid</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td style="font-family:var(--font-head);font-size:0.78rem">#CD-48180</td>
+                  <td>Silk Pillowcase Set</td>
+                  <td style="font-family:var(--font-head);font-weight:700;color:var(--accent)">$63</td>
+                  <td><span class="badge badge-green">Paid</span></td>
+                  <td style="color:var(--muted)">Apr 18</td>
+                </tr>
+                <tr>
+                  <td style="font-family:var(--font-head);font-size:0.78rem">#CD-48170</td>
+                  <td>Resistance Band Set</td>
+                  <td style="font-family:var(--font-head);font-weight:700;color:var(--accent)">$75</td>
+                  <td><span class="badge badge-green">Paid</span></td>
+                  <td style="color:var(--muted)">Apr 15</td>
+                </tr>
+                <tr>
+                  <td style="font-family:var(--font-head);font-size:0.78rem">#CD-48155</td>
+                  <td>Bamboo Cutting Board</td>
+                  <td style="font-family:var(--font-head);font-weight:700;color:var(--accent)">$60</td>
+                  <td><span class="badge badge-green">Paid</span></td>
+                  <td style="color:var(--muted)">Apr 11</td>
+                </tr>
+                <tr>
+                  <td style="font-family:var(--font-head);font-size:0.78rem">#CD-48140</td>
+                  <td>Foam Roller</td>
+                  <td style="font-family:var(--font-head);font-weight:700;color:var(--accent)">$75</td>
+                  <td><span class="badge badge-green">Paid</span></td>
+                  <td style="color:var(--muted)">Apr 7</td>
+                </tr>
+                <tr>
+                  <td style="font-family:var(--font-head);font-size:0.78rem">#CD-48199</td>
+                  <td>LED Desk Lamp</td>
+                  <td style="font-family:var(--font-head);font-weight:700;color:var(--amber)">$90</td>
+                  <td><span class="badge badge-amber">Pending</span></td>
+                  <td style="color:var(--muted)">—</td>
+                </tr>
+                <tr>
+                  <td style="font-family:var(--font-head);font-size:0.78rem">#CD-48195</td>
+                  <td>Magnetic Phone Mount</td>
+                  <td style="font-family:var(--font-head);font-weight:700;color:var(--amber)">$75</td>
+                  <td><span class="badge badge-amber">Pending</span></td>
+                  <td style="color:var(--muted)">—</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════ -->
+      <!-- PROFILE VIEW                           -->
+      <!-- ══════════════════════════════════════ -->
+      <div class="view" id="view-profile">
+        <div class="card">
+          <div class="card-header"><p class="card-title">Your rate</p></div>
+          <div class="rate-display" id="profile-rate-display">$75 <span>per video</span></div>
+          <input type="range" min="20" max="500" step="5" value="75" oninput="document.getElementById('profile-rate-display').innerHTML = '$' + this.value + ' <span>per video</span>'" />
+          <div style="display:flex;justify-content:space-between;font-size:0.7rem;color:var(--muted);margin-top:0.4rem"><span>$20</span><span>$500</span></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><p class="card-title">Personal info</p></div>
+          <div class="profile-grid">
+            <div class="field"><label>First name</label><input type="text" id="p-first" placeholder="Your first name" /></div>
+            <div class="field"><label>Last name</label><input type="text" id="p-last" placeholder="Your last name" /></div>
+            <div class="field"><label>Email</label><input type="email" id="p-email" placeholder="you@example.com" /></div>
+            <div class="field"><label>Turnaround time</label>
+              <select id="p-turnaround">
+                <option>3 days</option>
+                <option selected>5 days</option>
+                <option>7 days</option>
+                <option>10 days</option>
+              </select>
+            </div>
+          </div>
+          <div class="field"><label>TikTok handle</label><input type="text" id="p-tiktok" placeholder="@yourhandle" /></div>
+          <div class="field"><label>Instagram handle</label><input type="text" id="p-instagram" placeholder="@yourhandle" /></div>
+          <div class="field"><label>Bio</label><textarea id="p-bio" placeholder="Tell brands what you specialise in..."></textarea></div>
+          <button class="save-btn" onclick="saveProfile()">Save changes</button>
+          <span id="save-msg" style="font-size:0.78rem;color:var(--green);margin-left:0.75rem;display:none">✓ Saved!</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- BRIEF MODAL -->
+<div class="brief-overlay" id="brief-overlay" onclick="if(event.target===this) closeBrief()">
+  <div class="brief-modal" id="brief-modal">
+    <h3 id="brief-title">Product brief</h3>
+    <p class="brief-sub" id="brief-order">Order details</p>
+    <div id="brief-content"></div>
+    <button class="brief-close" onclick="closeBrief()">← Close brief</button>
+  </div>
+</div>
+
+<script>
+  // ── Auth check ─────────────────────────────────────────────────
+  const token = localStorage.getItem('clipdrop_token');
+  const userRaw = localStorage.getItem('clipdrop_user');
+
+  if (!token || !userRaw) {
+    window.location.href = '/login.html';
+  } else {
+    const user = JSON.parse(userRaw);
+    if (user.role !== 'creator') {
+      window.location.href = '/login.html';
+    }
+    // Populate sidebar
+    const initials = ((user.first_name?.[0] || '') + (user.last_name?.[0] || '')).toUpperCase() || '??';
+    document.getElementById('sidebar-avatar').textContent = initials;
+    document.getElementById('sidebar-name').textContent = (user.first_name + ' ' + user.last_name).trim() || 'Creator';
+    document.getElementById('sidebar-email').textContent = user.email || '';
+
+    // Populate profile form
+    document.getElementById('p-first').value = user.first_name || '';
+    document.getElementById('p-last').value = user.last_name || '';
+    document.getElementById('p-email').value = user.email || '';
+  }
+
+  // ── Navigation ─────────────────────────────────────────────────
+  const viewMeta = {
+    orders:      { title: 'My Orders',         sub: 'Products assigned to you that need filming' },
+    submissions: { title: 'Submissions',        sub: 'Videos you have submitted for seller review' },
+    earnings:    { title: 'Earnings & Payouts', sub: 'Your payout history and pending payments' },
+    profile:     { title: 'Profile & Rate',     sub: 'Update your info, rate and turnaround time' },
+  };
+
+  function switchView(id, btn) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('view-' + id).classList.add('active');
+    if (btn) btn.classList.add('active');
+    document.getElementById('view-title').textContent = viewMeta[id].title;
+    document.getElementById('view-sub').textContent = viewMeta[id].sub;
+  }
+
+  // ── Brief modal ────────────────────────────────────────────────
+  const briefs = {
+    mount: {
+      title: 'Magnetic Phone Mount for Car',
+      order: '#CD-48195 · Due Apr 27',
+      sections: [
+        { label: 'Target audience', value: 'Commuters aged 25–45 who drive to work daily' },
+        { label: 'Ad style', value: '📦 Unboxing + lifestyle' },
+        { label: 'Video length', value: '30 seconds' },
+        { label: 'Key points to cover', value: 'Show how easy it is to install. Demonstrate the magnetic strength by attaching/removing the phone quickly. Show it in the car with GPS running.' },
+        { label: 'Special instructions', value: 'Film in natural daylight if possible. Do not mention the price. Show your genuine reaction when the magnet snaps in.' },
+        { label: 'Niches', tags: ['Automotive', 'Tech', 'Lifestyle'] },
+      ]
+    },
+    lamp: {
+      title: 'LED Desk Lamp with USB Charging',
+      order: '#CD-48199 · Due Apr 28',
+      sections: [
+        { label: 'Target audience', value: 'Students and remote workers aged 18–35' },
+        { label: 'Ad style', value: '⭐ Honest review' },
+        { label: 'Video length', value: '60 seconds' },
+        { label: 'Key points to cover', value: 'Show all three brightness levels. Demonstrate the USB-C charging port by plugging in a phone. Emphasise the minimalist design. Show it on a real desk setup.' },
+        { label: 'Special instructions', value: 'Film in a real workspace — bedroom desk is fine. Mention that it\'s touch-controlled. Hook should be something like "I stopped using my old lamp after this..."' },
+        { label: 'Niches', tags: ['Home', 'Tech', 'Lifestyle', 'Wellness'] },
+      ]
+    }
+  };
+
+  function openBrief(key) {
+    const brief = briefs[key];
+    document.getElementById('brief-title').textContent = brief.title;
+    document.getElementById('brief-order').textContent = brief.order;
+    let html = '';
+    brief.sections.forEach(s => {
+      html += `<div class="brief-section"><p class="brief-label">${s.label}</p>`;
+      if (s.tags) {
+        html += s.tags.map(t => `<span class="brief-tag">${t}</span>`).join('');
+      } else {
+        html += `<p class="brief-value">${s.value}</p>`;
+      }
+      html += '</div>';
+    });
+    document.getElementById('brief-content').innerHTML = html;
+    document.getElementById('brief-overlay').classList.add('open');
+  }
+
+  function closeBrief() {
+    document.getElementById('brief-overlay').classList.remove('open');
+  }
+
+  // ── Profile save ───────────────────────────────────────────────
+  function saveProfile() {
+    const user = JSON.parse(localStorage.getItem('clipdrop_user') || '{}');
+    user.first_name = document.getElementById('p-first').value.trim();
+    user.last_name = document.getElementById('p-last').value.trim();
+    user.email = document.getElementById('p-email').value.trim();
+    localStorage.setItem('clipdrop_user', JSON.stringify(user));
+
+    // Update sidebar
+    const initials = ((user.first_name?.[0] || '') + (user.last_name?.[0] || '')).toUpperCase();
+    document.getElementById('sidebar-avatar').textContent = initials;
+    document.getElementById('sidebar-name').textContent = (user.first_name + ' ' + user.last_name).trim();
+
+    const msg = document.getElementById('save-msg');
+    msg.style.display = 'inline';
+    setTimeout(() => msg.style.display = 'none', 2500);
+  }
+
+  // ── Logout ─────────────────────────────────────────────────────
+  function logout() {
+    localStorage.removeItem('clipdrop_token');
+    localStorage.removeItem('clipdrop_user');
+    window.location.href = '/login.html';
+  }
+</script>
+</body>
+</html>
